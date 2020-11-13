@@ -37,7 +37,7 @@ module L1C_data(
   logic [`CACHE_TAG_BITS-1:0] TA_in;//22
   logic TA_write;
   logic TA_read;
-  logic [`CACHE_LINES-1:0] valid;
+  logic [`CACHE_LINES-1:0] valid;//64
 
   //--------------- complete this part by yourself -----------------//
   
