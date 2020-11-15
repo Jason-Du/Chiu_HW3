@@ -1,4 +1,5 @@
- `timescale 1ns/10ps
+`include "../include/def.svh"
+`timescale 1ns/10ps
 module valid_register(
 					clk,
 					rst,

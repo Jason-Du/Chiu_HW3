@@ -4,7 +4,7 @@
 // Description: L1 Cache for data
 // Version:     0.1
 //================================================
-`include "def.svh"
+`include "../include/def.svh"
 `timescale 1ns/10ps
 module L1C_data(
   input                               clk,

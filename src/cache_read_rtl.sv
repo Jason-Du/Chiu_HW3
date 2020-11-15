@@ -1,4 +1,4 @@
-`include "def.svh"
+`include "../include/def.svh"
 `timescale 1ns/10ps
 module cache_read(
 				  clk,
