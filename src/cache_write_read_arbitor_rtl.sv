@@ -60,6 +60,8 @@ module cache_write_read_arbitor(
 								
 								
 );
+  localparam STATE_IDLE=1'b0;
+  localparam STATE_OPERATION=1'b1;
   input                                clk;
   input                                rst;
   input                                core_req;
@@ -164,17 +166,17 @@ module cache_write_read_arbitor(
 		valid_read_data
 	}=decide_signal;
 	case(cs)
-		1'b0:
+		STATE_IDLE:
 		begin
 			write_operation=core_req&&(core_write==1'b1);
 			decide_signal=(write_operation)?write_signal:read_signal;
-			ns=1'b1;
+			ns=STATE_OPERATION;
 		end
-		1'b1:
+		STATE_OPERATION:
 		begin
 			write_operation=write_operation_register_out;
 			decide_signal=(write_operation)?write_signal:read_signal;
-			ns=decide_signal[222]?1'b1:1'b0;
+			ns=decide_signal[222]?STATE_IDLE:STATE_OPERATION;
 		end
 	endcase
   end
@@ -182,7 +184,7 @@ module cache_write_read_arbitor(
   begin
 	if(rst)
 	begin
-		cs<=1'b0;
+		cs<=STATE_IDLE;
 		write_operation_register_out<=1'b0;
 	end
 	else

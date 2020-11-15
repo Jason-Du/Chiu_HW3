@@ -40,6 +40,7 @@ module cache_write(
   localparam STATE_READ_CACHE_ARRAY =3'b010;
   localparam STATE_CHECK_HIT        =3'b011;
   localparam STATE_WRITE_CACHE      =3'b100;
+  localparam STATE_WAIT             =3'b101;
   input                                 clk;
   input                                 rst;
 
@@ -273,7 +274,7 @@ begin
 			ns=STATE_START;
 			D_req             =1'b0;
 			D_write           =1'b0;
-			core_wait         =1'b1;
+			core_wait         =1'b0;
 			D_type            =D_type_register_out;
 			D_addr            =D_addr_register_out;
 			D_in              =D_in_register_out;
