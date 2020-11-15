@@ -9,7 +9,7 @@ module cache_write(
 					core_in,
 					core_type,//4
 					D_wait,
-					TA_out;
+					TA_out,
 					//DA_out;
 					valid_data_from_register,
 
@@ -30,10 +30,10 @@ module cache_write(
 
 					DA_in,
 					DA_write,
+					DA_read,
 
-
-					vaild_read,
-					vaild_write
+					valid_read,
+					//valid_write
 );
   localparam STATE_START            =3'b000;
   localparam STATE_WRITE_MEM        =3'b001;
@@ -70,7 +70,7 @@ module cache_write(
   output logic [                127:0] DA_in;
   output logic                         DA_write;
   output logic                         DA_read;
-  output logic                         vaild_read;
+  output logic                         valid_read;
 
   logic        [                  2:0] cs;
   logic        [                  2:0] ns;
@@ -102,7 +102,7 @@ always_ff@(posedge clk or negedge rst)
 begin
 	if(rst)
 	begin
-		TA_in_register_out<=22'0;
+		TA_in_register_out<=22'd0;
 		D_type_register_out<=3'b000;
 		D_addr_register_out<=32'd0;
 		index_register_out<=6'd0;
@@ -136,7 +136,7 @@ TA_write;
 TA_read;
 DA_in;
 DA_write;
-vaild_read;
+valid_read;
 cs;
 ns;
   
@@ -179,7 +179,7 @@ begin
 				D_req    =1'b0;
 				D_addr   =32'd0;
 				D_write  =1'b0;
-				index    =6'd0
+				index    =6'd0;
 				TA_in    =22'd0;
 				offset   =4'd0;
 			end
@@ -188,8 +188,9 @@ begin
 			TA_read      =1'b0;
 			DA_in        =128'd0;
 			DA_write     =16'hffff;
-			vaild_read   =1'b0;
-			single_valid_data =1'b0
+			DA_read      =1'b0;
+			valid_read   =1'b0;
+			single_valid_data =1'b0;
 		end
 		STATE_WRITE_MEM:
 		begin
@@ -197,7 +198,7 @@ begin
 			begin
 				ns=STATE_WRITE_MEM;
 				D_req    =1'b1;
-				D_write      =1'b1
+				D_write      =1'b1;
 			end
 			else
 			begin
@@ -211,12 +212,13 @@ begin
 			D_in         =D_in_register_out;
 			index        =index_register_out;
 			TA_in        =TA_in_register_out;
-			offset       =offset_register_out
+			offset       =offset_register_out;
 			TA_write     =1'b0;
 			TA_read      =1'b0;
 			DA_in        =128'd0;
 			DA_write     =16'hffff;
-			vaild_read   =1'b0;
+			DA_read      =1'b0;
+			valid_read   =1'b0;
 			single_valid_data =1'b0;
 		end
 		STATE_READ_CACHE_ARRAY:
@@ -230,12 +232,13 @@ begin
 			D_in              =D_in_register_out;
 			index             =index_register_out;
 			TA_in             =TA_in_register_out;
-			offset            =offset_register_out
+			offset            =offset_register_out;
 			TA_write          =1'b0;
 			TA_read           =1'b1;
 			DA_in             =128'd0;
 			DA_write          =16'hffff;
-			vaild_read        =1'b1;
+			DA_read           =1'b1;
+			valid_read        =1'b1;
 			single_valid_data =valid_data_from_register;
 		end
 		STATE_CHECK_HIT:
@@ -256,12 +259,13 @@ begin
 			D_in              =D_in_register_out;
 			index             =index_register_out;
 			TA_in             =TA_in_register_out;
-			offset            =offset_register_out
+			offset            =offset_register_out;
 			TA_write          =1'b0;
 			TA_read           =1'b1;
 			DA_in             =128'd0;
 			DA_write          =16'hffff;
-			vaild_read        =1'b1;			
+			DA_read           =1'b1;
+			valid_read        =1'b1;			
 			single_valid_data =valid_data_from_register;
 		end
 		STATE_WRITE_CACHE:
@@ -280,7 +284,8 @@ begin
 			TA_read           =1'b0;
 			//DA_in             =128'd0;
 			//DA_write          =1'b1;
-			vaild_read        =1'b0;			
+			DA_read           =1'b0;
+			valid_read        =1'b0;			
 			single_valid_data =valid_data_from_register;
 			case(offset)
 				4'd0:
@@ -446,9 +451,10 @@ begin
 			offset            =6'd0;
 			TA_write          =1'b0;
 			TA_read           =1'b0;
+			DA_read           =1'b0;
 			//DA_in             =128'd0;
 			//DA_write          =1'b1;
-			vaild_read        =1'b0;			
+			valid_read        =1'b0;			
 			single_valid_data =1'b0;
 		end
 	endcase

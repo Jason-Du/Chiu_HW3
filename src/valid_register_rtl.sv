@@ -24,8 +24,42 @@ logic  [5:0] valid_register;
 	begin
 		if(rst)
 		begin
-			valid_register<=64'd0
-			/*
+			valid_register<=64'd0;
+		end
+		else
+		begin
+			if(valid_write)
+			begin
+				valid_register[valid_addr]<=1'b0;
+			end
+			else
+				valid_register<=valid_register;
+		end
+	end
+	always_comb
+	begin
+		if(rst)
+		begin
+			//valid_data=64'd0;
+			valid_data=1'd0;
+		end
+		else
+		begin
+			if(valid_read)
+			begin
+				//valid_data=valid_register;
+				valid_data=valid_register[valid_addr];
+			end
+			else
+			begin
+				//valid_data=64'd0;
+				valid_data=1'd0;
+			end
+		end
+	end
+	
+endmodule
+		/*
 			valid_register[0]<=1'b0;
 			valid_register[1]<=1'b0;
 			valid_register[2]<=1'b0;
@@ -91,37 +125,3 @@ logic  [5:0] valid_register;
 			valid_register[62]<=1'b0;
 			valid_register[63]<=1'b0;
 			*/
-		end
-		else
-		begin
-			if(valid_write)
-			begin
-				valid_register[valid_addr]<=1'b0;
-			end
-			else
-				valid_register<=valid_register;
-		end
-	end
-	always_comb
-	begin
-		if(rst)
-		begin
-			//valid_data=64'd0;
-			valid_data=1'd0;
-		end
-		else
-		begin
-			if(valid_read)
-			begin
-				//valid_data=valid_register;
-				valid_data=valid_register[addr];
-			end
-			else
-			begin
-				//valid_data=64'd0;
-				valid_data=1'd0;
-			end
-		end
-	end
-	
-endmodule
