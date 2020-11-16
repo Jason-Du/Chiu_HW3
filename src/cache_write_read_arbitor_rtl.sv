@@ -170,7 +170,7 @@ module cache_write_read_arbitor(
 		begin
 			write_operation=core_req&&(core_write==1'b1);
 			decide_signal=(write_operation)?write_signal:read_signal;
-			ns=STATE_OPERATION;
+			ns=core_req?STATE_IDLE:STATE_OPERATION;
 		end
 		STATE_OPERATION:
 		begin

@@ -30,7 +30,7 @@ logic  [5:0] valid_register;
 		begin
 			if(valid_write)
 			begin
-				valid_register[valid_addr]<=1'b0;
+				valid_register[valid_addr]<=1'b1;
 			end
 			else
 				valid_register<=valid_register;
@@ -53,7 +53,7 @@ logic  [5:0] valid_register;
 			else
 			begin
 				//valid_data=64'd0;
-				valid_data=1'd0;
+				valid_data=1'b0;
 			end
 		end
 	end
