@@ -81,8 +81,8 @@ module cache_read(
   output logic                         valid_write;
   
   //logic        [     `CACHE_LINES-1:0] valid_register_out;
-  logic        [     `CACHE_LINES-1:0] index_register_out;
-  logic        [     `CACHE_LINES-1:0] TA_in_register_out;
+  logic        [`CACHE_INDEX_BITS-1:0] index_register_out;
+  logic        [  `CACHE_TAG_BITS-1:0] TA_in_register_out;
   logic        [                127:0] DA_in_register_out;
   logic        [ `CACHE_TYPE_BITS-1:0] D_type_register_out;
   logic        [                 31:0] D_addr_register_out;
@@ -120,7 +120,7 @@ module cache_read(
 		D_addr_register_out<=32'd0;
 		single_vaild_data_register_out<=1'b0;
 		offset_register_out<=4'b0000;
-		DA_in_register_out<=127'd0;
+		DA_in_register_out<=128'd0;
 		core_out_register_out<=32'd0;
 	end
 	else
@@ -186,17 +186,20 @@ valid_write
 					core_wait        =1'b0;
 					index            =6'd0;
 					TA_in            =22'd0;
+					offset           =offset_register_out;
 					D_type           =3'b000;
 					D_addr           =32'd0;
 					valid_read       =1'b0;
 					single_vaild_data=1'd0;
+					DA_read =1'b0;
+					TA_read =1'b0;
 				end
 				core_out=32'd0;
 				D_req   =1'b0;
 				//D_addr  =32'd0;
 				D_in    =32'd0;
 				DA_in   =128'd0;
-				DA_write=1'b0;
+				DA_write=16'hffff;
 				TA_write=1'b0;
 				valid_write=1'b0;
 				
@@ -258,7 +261,7 @@ valid_write
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
 				
-				DA_write         =1'b0;
+				DA_write=16'hffff;
 				TA_write         =1'b0;
 				valid_write      =1'b0;
 			end
@@ -294,7 +297,7 @@ valid_write
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
 				
-				DA_write=1'b0;
+				DA_write=16'hffff;
 				TA_write=1'b0;
 				valid_write=1'b0;				
 			end
@@ -329,7 +332,7 @@ valid_write
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
 				
-				DA_write=1'b0;
+				DA_write=16'hffff;
 				TA_write=1'b0;
 				valid_write=1'b0;					
 			end
@@ -364,7 +367,7 @@ valid_write
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
 				
-				DA_write=1'b0;
+				DA_write=16'hffff;
 				TA_write=1'b0;
 				valid_write=1'b0;			
 			end
@@ -398,7 +401,7 @@ valid_write
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
 				
-				DA_write=1'b0;
+				DA_write=16'hffff;
 				TA_write=1'b0;
 				valid_write=1'b0;		
 			end
@@ -425,7 +428,7 @@ valid_write
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
 				
-				DA_write=1'b1;
+				DA_write=16'h0000;
 				TA_write=1'b1;
 				valid_write=1'b1;		
 			end
@@ -451,7 +454,7 @@ valid_write
 				
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
-				DA_write=1'b0;
+				DA_write=16'hffff;
 				TA_write=1'b0;
 				valid_write=1'b0;		
 			end
@@ -477,7 +480,7 @@ valid_write
 				
 				single_vaild_data=1'b0;
 				offset           =4'd0;
-				DA_write=1'b0;
+				DA_write=16'hffff;
 				TA_write=1'b0;
 				valid_write=1'b0;		
 			end

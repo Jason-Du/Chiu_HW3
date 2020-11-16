@@ -60,8 +60,8 @@ module cache_write_read_arbitor(
 								
 								
 );
-  localparam STATE_IDLE=1'b0;
-  localparam STATE_OPERATION=1'b1;
+  localparam STATE_IDLE                =1'b0;
+  localparam STATE_OPERATION           =1'b1;
   input                                clk;
   input                                rst;
   input                                core_req;
@@ -73,11 +73,11 @@ module cache_write_read_arbitor(
   input        [       `DATA_BITS-1:0] D_in_write;//32
   input        [ `CACHE_TYPE_BITS-1:0] D_type_write;//3
   input        [                  5:0] index_write; //6
-  input        [                 21:0] TA_in_write;//1
+  input        [                 21:0] TA_in_write;//22
   input                                TA_write_write;//1
   input                                TA_read_write;//1
   input        [                127:0] DA_in_write;//128
-  input                                DA_write_write;//16
+  input        [                 15:0] DA_write_write;//16
   input                                DA_read_write;//1
   input                                valid_read_write;//1
   input							       core_wait_read;
@@ -90,7 +90,7 @@ module cache_write_read_arbitor(
   input                                TA_write_read;
   input                                TA_read_read;
   input        [                127:0] DA_in_read;
-  input                                DA_write_read;
+  input        [                 15:0] DA_write_read;
   input                                DA_read_read;
   input                                valid_read_read;
   
@@ -105,13 +105,13 @@ module cache_write_read_arbitor(
   output logic                         TA_write_data;
   output logic                         TA_read_data;
   output logic [                127:0] DA_in_data;
-  output logic                         DA_write_data;
+  output logic [                 15:0] DA_write_data;
   output logic                         DA_read_data;
   output logic                         valid_read_data;
   
-  logic        [                222:0] read_signal;
-  logic        [                222:0] write_signal;
-  logic        [                222:0] decide_signal;
+  logic        [                244:0] read_signal;
+  logic        [                244:0] write_signal;
+  logic        [                244:0] decide_signal;
   logic                                write_operation_register_out;
   logic                                write_operation;
   logic                                cs;
@@ -121,13 +121,13 @@ module cache_write_read_arbitor(
   always_comb
   begin
 	write_signal={
-					core_wait_write,
+					core_wait_write,//1
 					D_req_write,//1
 					D_addr_write,//32
 					D_in_write,//32
 					D_type_write,//3
 					index_write, //6
-					TA_in_write,//1
+					TA_in_write,//22
 					TA_write_write,//1
 					TA_read_write,//1
 					DA_in_write,//128
@@ -170,13 +170,13 @@ module cache_write_read_arbitor(
 		begin
 			write_operation=core_req&&(core_write==1'b1);
 			decide_signal=(write_operation)?write_signal:read_signal;
-			ns=core_req?STATE_IDLE:STATE_OPERATION;
+			ns=core_req?STATE_OPERATION:STATE_IDLE;
 		end
 		STATE_OPERATION:
 		begin
 			write_operation=write_operation_register_out;
 			decide_signal=(write_operation)?write_signal:read_signal;
-			ns=decide_signal[222]?STATE_IDLE:STATE_OPERATION;
+			ns=decide_signal[244]?STATE_OPERATION:STATE_IDLE;
 		end
 	endcase
   end

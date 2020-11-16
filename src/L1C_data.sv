@@ -60,7 +60,7 @@ module L1C_data(
   logic                                TA_write_write;//1
   logic                                TA_read_write;//1
   logic        [                127:0] DA_in_write;//128
-  logic                                DA_write_write;//16
+  logic        [                 15:0] DA_write_write;//16
   logic                                DA_read_write;//1
   logic                                valid_read_write;//1
   logic							       core_wait_read;
@@ -73,7 +73,7 @@ module L1C_data(
   logic                                TA_write_read;
   logic                                TA_read_read;
   logic        [                127:0] DA_in_read;
-  logic                                DA_write_read;
+  logic        [                 15:0] DA_write_read;
   logic                                DA_read_read;
   logic                                valid_read_read;
 cache_write cah_wr(

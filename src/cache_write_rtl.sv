@@ -69,7 +69,7 @@ module cache_write(
   output logic                         TA_write;
   output logic                         TA_read;
   output logic [                127:0] DA_in;
-  output logic                         DA_write;
+  output logic [                 15:0] DA_write;
   output logic                         DA_read;
   output logic                         valid_read;
 
@@ -88,7 +88,7 @@ module cache_write(
   logic        [                 31:0] D_in_register_out;
   
   
-always_ff@(posedge clk or negedge rst)
+always_ff@(posedge clk or posedge rst)
 begin
 	if(rst)
 	begin
@@ -99,7 +99,7 @@ begin
 		cs<=ns;
 	end
 end
-always_ff@(posedge clk or negedge rst)
+always_ff@(posedge clk or posedge rst)
 begin
 	if(rst)
 	begin
@@ -350,7 +350,7 @@ begin
 						`CACHE_HWORD_U:
 						begin
 							DA_write          ={4'hf,4'b0011,8'hff};
-							DA_in             ={64'd0,D_in[15:0],16'd0,64'd0};
+							DA_in             ={32'd0,D_in[15:0],16'd0,64'd0};
 						end
 						default
 						begin
@@ -400,7 +400,7 @@ begin
 						`CACHE_BYTE:
 						begin
 							DA_write          ={12'hfff,4'b1110};
-							DA_in             ={96'd0,24'd0,DA_in[7:0]};
+							DA_in             ={96'd0,24'd0,D_in[7:0]};
 						end
 						`CACHE_HWORD:
 						begin
@@ -447,10 +447,10 @@ begin
 			core_wait         =1'b0;
 			D_type            =3'b000;
 			D_addr            =32'd0;
-			D_in              =128'd0;
+			D_in              =32'd0;
 			index             =6'd0;
 			TA_in             =22'd0;
-			offset            =6'd0;
+			offset            =4'd0;
 			TA_write          =1'b0;
 			TA_read           =1'b0;
 			DA_read           =1'b0;
@@ -482,7 +482,7 @@ case(offset)
 						`CACHE_BYTE:
 						begin
 							DA_write          ={12'hfff,4'b1110};
-							DA_in             ={96'd0,24'd0,DA_in[7:0]};
+							DA_in             ={96'd0,24'd0,D_in[7:0]};
 						end
 						`CACHE_HWORD:
 						begin
@@ -587,7 +587,7 @@ case(offset)
 						`CACHE_BYTE:
 						begin
 							DA_write          ={4'b1110,12'hfff};
-							DA_in             ={24'd0,DA_in[7:0],96'd0};
+							DA_in             ={24'd0,D_in[7:0],96'd0};
 						end
 						`CACHE_HWORD:
 						begin
