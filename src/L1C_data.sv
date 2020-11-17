@@ -15,23 +15,23 @@ module L1C_data(
   input                               rst,
 
   // Core to CPU wrapper
-  input        [       `DATA_BITS-1:0] core_addr,
-  input                               core_req,
-  input                               core_write,
-  input        [       `DATA_BITS-1:0] core_in,
-  input        [ `CACHE_TYPE_BITS-1:0] core_type,//4
+  input        [       `DATA_BITS-1:0] core_addr,//FROM CPU 
+  input                               core_req,//FROM CPU
+  input                               core_write,//FROM CPU
+  input        [       `DATA_BITS-1:0] core_in,//FROM CPU
+  input        [ `CACHE_TYPE_BITS-1:0] core_type,//FROM CPU
   // Mem to CPU wrapper
-  input        [       `DATA_BITS-1:0] D_out,
-  input                               D_wait,
+  input        [       `DATA_BITS-1:0] D_out,//FROM WRAPPER
+  input                                D_wait,//FROM WRAPPER
   // CPU wrapper to core
-  output logic [       `DATA_BITS-1:0] core_out,
-  output logic                         core_wait,
+  output logic [       `DATA_BITS-1:0] core_out,//TO CPU
+  output logic                         core_wait,//TO CPU
   // CPU wrapper to Mem
-  output logic                         D_req,
-  output logic [       `DATA_BITS-1:0] D_addr,
-  output logic                         D_write,
-  output logic [       `DATA_BITS-1:0] D_in,
-  output logic [ `CACHE_TYPE_BITS-1:0] D_type
+  output logic                         D_req,//TO WRAPPER
+  output logic [       `DATA_BITS-1:0] D_addr,//TO WRAPPER
+  output logic                         D_write,//TO WRAPPER
+  output logic [       `DATA_BITS-1:0] D_in,//TO WRAPPER
+  output logic [ `CACHE_TYPE_BITS-1:0] D_type//TO WRAPPER
 );
 
   logic        [`CACHE_INDEX_BITS-1:0] index;//6//address

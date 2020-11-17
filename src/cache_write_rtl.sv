@@ -206,15 +206,23 @@ begin
 				D_write      =1'b0;
 			end
 			core_wait    =1'b1;
+			//D_req    =1'b1;
+			//D_write      =1'b1;
 			//D_type       =D_type_register_out;
 			D_type       =core_type;
 			//D_addr       =D_addr_register_out;
 			D_addr       =core_addr;
 			//D_in         =D_in_register_out;
 			D_in         =core_in;
+			
 			index        =index_register_out;
 			TA_in        =TA_in_register_out;
 			offset       =offset_register_out;
+			/*
+			index    =core_addr[  9:4];
+			TA_in    =core_addr[31:10];
+			offset   =core_addr[  3:0];
+			*/
 			TA_write     =1'b0;
 			TA_read      =1'b0;
 			DA_in        =128'd0;
@@ -235,9 +243,16 @@ begin
 			D_addr            =core_addr;
 			//D_in              =D_in_register_out;
 			D_in              =core_in;
-			index             =index_register_out;
-			TA_in             =TA_in_register_out;
-			offset            =offset_register_out;
+			
+			index        =index_register_out;
+			TA_in        =TA_in_register_out;
+			offset       =offset_register_out;
+			
+			/*
+			index    =core_addr[  9:4];
+			TA_in    =core_addr[31:10];
+			offset   =core_addr[  3:0];
+			*/
 			TA_write          =1'b0;
 			TA_read           =1'b1;
 			DA_in             =128'd0;
@@ -266,9 +281,15 @@ begin
 			D_addr            =core_addr;
 			//D_in              =D_in_register_out;
 			D_in              =core_in;
-			index             =index_register_out;
-			TA_in             =TA_in_register_out;
-			offset            =offset_register_out;
+			
+			index        =index_register_out;
+			TA_in        =TA_in_register_out;
+			offset       =offset_register_out;
+			/*
+			index    =core_addr[  9:4];
+			TA_in    =core_addr[31:10];
+			offset   =core_addr[  3:0];
+			*/
 			TA_write          =1'b0;
 			TA_read           =1'b1;
 			DA_in             =128'd0;
@@ -289,9 +310,16 @@ begin
 			D_addr            =core_addr;
 			//D_in              =D_in_register_out;
 			D_in              =core_in;
-			index             =index_register_out;
-			TA_in             =TA_in_register_out;
-			offset            =offset_register_out;
+			
+			index        =index_register_out;
+			TA_in        =TA_in_register_out;
+			offset       =offset_register_out;
+			
+			/*
+			index    =core_addr[  9:4];
+			TA_in    =core_addr[31:10];
+			offset   =core_addr[  3:0];
+			*/
 			TA_write          =1'b1;
 			TA_read           =1'b0;
 			//DA_in             =128'd0;
@@ -478,7 +506,153 @@ end
 
 endmodule
 /*
-
+case(offset)
+				4'd0:
+				begin
+					case(D_type)
+						`CACHE_BYTE:
+						begin
+							DA_write          ={4'b1110,12'hfff};
+							DA_in             ={24'd0,D_in[7:0],96'd0};
+						end
+						`CACHE_HWORD:
+						begin
+							DA_write          ={4'b1100,12'hfff};
+							DA_in             ={16'd0,D_in[15:0],96'd0};
+						end
+						`CACHE_WORD:
+						begin
+							DA_write          ={4'b0000,12'hfff};
+							DA_in             ={D_in,96'd0};
+						end
+						`CACHE_BYTE_U:
+						begin
+							DA_write          ={4'b0111,12'hfff};
+							DA_in             ={D_in[7:0],24'd0,96'd0};
+						end
+						`CACHE_HWORD_U:
+						begin
+							DA_write          ={4'b0011,12'hfff};
+							DA_in             ={D_in[15:0],16'd0,96'd0};
+						end
+						default
+						begin
+							DA_write          =16'hffff;
+							DA_in             =128'd0;
+						end
+					endcase
+				end
+				4'd4:
+				begin
+					case(D_type)
+						`CACHE_BYTE:
+						begin
+							DA_write          ={4'hf,4'b1110,8'hff};
+							DA_in             ={32'd0,24'd0,D_in[7:0],64'd0};
+						end
+						`CACHE_HWORD:
+						begin
+							DA_write          ={4'hf,4'b1100,8'hff};
+							DA_in             ={32'd0,16'd0,D_in[15:0],64'd0};
+						end
+						`CACHE_WORD:
+						begin
+							DA_write          ={4'hf,4'b0000,8'hff};
+							DA_in             ={32'd0,D_in,64'd0};
+						end
+						`CACHE_BYTE_U:
+						begin
+							DA_write          ={4'hf,4'b0111,8'hff};
+							DA_in             ={32'd0,D_in[7:0],24'd0,64'd0};
+						end
+						`CACHE_HWORD_U:
+						begin
+							DA_write          ={4'hf,4'b0011,8'hff};
+							DA_in             ={32'd0,D_in[15:0],16'd0,64'd0};
+						end
+						default
+						begin
+							DA_write          =16'hffff;
+							DA_in             =128'd0;
+						end
+					endcase
+				end
+				4'd8:
+				begin
+					case(D_type)
+						`CACHE_BYTE:
+						begin
+							DA_write          ={8'hff,4'b1110,4'hf};
+							DA_in             ={64'd0,24'd0,D_in[7:0],32'd0};
+						end
+						`CACHE_HWORD:
+						begin
+							DA_write          ={8'hff,4'b1100,4'hf};
+							DA_in             ={64'd0,16'd0,D_in[15:0],32'd0};
+						end
+						`CACHE_WORD:
+						begin
+							DA_write          ={8'hff,4'b0000,4'hf};
+							DA_in             ={64'd0,D_in,32'd0};
+						end
+						`CACHE_BYTE_U:
+						begin
+							DA_write          ={8'hff,4'b0111,4'hf};
+							DA_in             ={64'd0,D_in[7:0],24'd0,32'd0};
+						end
+						`CACHE_HWORD_U:
+						begin
+							DA_write          ={8'hff,4'b0011,4'hf};
+							DA_in             ={64'd0,D_in[15:0],16'd0,32'd0};
+						end
+						default
+						begin
+							DA_write          =16'hffff;
+							DA_in             =128'd0;
+						end
+					endcase
+				end
+				4'd12:
+				begin
+					case(D_type)
+						`CACHE_BYTE:
+						begin
+							DA_write          ={12'hfff,4'b1110};
+							DA_in             ={96'd0,24'd0,D_in[7:0]};
+						end
+						`CACHE_HWORD:
+						begin
+							DA_write          ={12'hfff,4'b1100};
+							DA_in             ={96'd0,16'd0,D_in[15:0]};
+						end
+						`CACHE_WORD:
+						begin
+							DA_write          ={12'hfff,4'b0000};
+							DA_in             ={96'd0,D_in};
+						end
+						`CACHE_BYTE_U:
+						begin
+							DA_write          ={12'hfff,4'b0111};
+							DA_in             ={96'd0,D_in[7:0],24'd0};
+						end
+						`CACHE_HWORD_U:
+						begin
+							DA_write          ={12'hfff,4'b0011};
+							DA_in             ={96'd0,D_in[15:0],16'd0};
+						end
+						default
+						begin
+							DA_write          =16'hffff;
+							DA_in             =128'd0;
+						end
+					endcase
+				end
+				default:
+				begin
+					DA_write          =16'hffff;
+					DA_in             =128'd0;
+				end
+			endcase
 			
 			
 			
