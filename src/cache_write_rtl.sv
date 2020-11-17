@@ -168,8 +168,6 @@ begin
 				index    =core_addr[  9:4];
 				TA_in    =core_addr[31:10];
 				offset   =core_addr[  3:0];
-				
-				//D_in     =core_in;
 			end
 			else
 			begin
@@ -208,9 +206,12 @@ begin
 				D_write      =1'b0;
 			end
 			core_wait    =1'b1;
-			D_type       =D_type_register_out;
-			D_addr       =D_addr_register_out;
-			D_in         =D_in_register_out;
+			//D_type       =D_type_register_out;
+			D_type       =core_type;
+			//D_addr       =D_addr_register_out;
+			D_addr       =core_addr;
+			//D_in         =D_in_register_out;
+			D_in         =core_in;
 			index        =index_register_out;
 			TA_in        =TA_in_register_out;
 			offset       =offset_register_out;
@@ -228,9 +229,12 @@ begin
 			D_req             =1'b0;
 			D_write           =1'b0;
 			core_wait         =1'b1;
-			D_type            =D_type_register_out;
-			D_addr            =D_addr_register_out;
-			D_in              =D_in_register_out;
+			//D_type            =D_type_register_out;
+			D_type            =core_type;
+			//D_addr            =D_addr_register_out;
+			D_addr            =core_addr;
+			//D_in              =D_in_register_out;
+			D_in              =core_in;
 			index             =index_register_out;
 			TA_in             =TA_in_register_out;
 			offset            =offset_register_out;
@@ -255,9 +259,13 @@ begin
 			D_req             =1'b0;
 			D_write           =1'b0;
 			core_wait         =1'b1;
-			D_type            =D_type_register_out;
-			D_addr            =D_addr_register_out;
-			D_in              =D_in_register_out;
+			
+			//D_type            =D_type_register_out;
+			D_type            =core_type;
+			//D_addr            =D_addr_register_out;
+			D_addr            =core_addr;
+			//D_in              =D_in_register_out;
+			D_in              =core_in;
 			index             =index_register_out;
 			TA_in             =TA_in_register_out;
 			offset            =offset_register_out;
@@ -275,9 +283,12 @@ begin
 			D_req             =1'b0;
 			D_write           =1'b0;
 			core_wait         =1'b0;
-			D_type            =D_type_register_out;
-			D_addr            =D_addr_register_out;
-			D_in              =D_in_register_out;
+			//D_type            =D_type_register_out;
+			D_type            =core_type;
+			//D_addr            =D_addr_register_out;
+			D_addr            =core_addr;
+			//D_in              =D_in_register_out;
+			D_in              =core_in;
 			index             =index_register_out;
 			TA_in             =TA_in_register_out;
 			offset            =offset_register_out;
