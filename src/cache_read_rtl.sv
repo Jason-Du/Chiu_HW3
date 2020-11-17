@@ -32,7 +32,8 @@ module cache_read(
 				  TA_read,//output
 				  TA_write,
 				  valid_read,
-				  valid_write
+				  valid_write,
+				  read_active
   
 );
   localparam STATE_IDLE        =4'b0000;
@@ -79,6 +80,7 @@ module cache_read(
   
   output logic                         valid_read;
   output logic                         valid_write;
+  output logic                         read_active;
   
   //logic        [     `CACHE_LINES-1:0] valid_register_out;
   logic        [`CACHE_INDEX_BITS-1:0] index_register_out;
@@ -174,6 +176,7 @@ valid_write
 					D_type           =core_type;
 					D_addr           =core_addr;
 					valid_read       =1'b1;
+					read_active     =1'b1;
 					single_vaild_data=valid_from_register;
 					DA_read =1'b1;
 					TA_read =1'b1;
@@ -190,6 +193,7 @@ valid_write
 					D_type           =3'b000;
 					D_addr           =32'd0;
 					valid_read       =1'b0;
+					read_active     =1'b0;
 					single_vaild_data=1'd0;
 					DA_read =1'b0;
 					TA_read =1'b0;
@@ -210,8 +214,10 @@ valid_write
 			begin
 				if((TA_out==TA_in )&&(single_vaild_data))
 				begin
-					ns           =STATE_WAIT;
+					//ns           =STATE_WAIT;
+					ns             =STATE_IDLE;
 					D_req        =1'b0;
+					read_active     =1'b0;
 					case(offset)
 						4'd0:
 						begin
@@ -240,6 +246,7 @@ valid_write
 					ns           =STATE_READ_MEM1;
 					D_req        =1'b1;
 					core_out     =32'd0;
+					read_active     =1'b1;
 				end
 				
 				valid_read       =1'b0;
@@ -264,6 +271,7 @@ valid_write
 				DA_write=16'hffff;
 				TA_write         =1'b0;
 				valid_write      =1'b0;
+				//read_active     =1'b1;
 			end
 			STATE_READ_MEM1:
 			begin
@@ -285,7 +293,6 @@ valid_write
 				
 				D_in             =32'd0;
 				D_type           =D_type_register_out;
-				
 				index            =index_register_out;
 				DA_read          =1'b0;
 				//DA_in            ={96'd0,D_out};
@@ -296,6 +303,7 @@ valid_write
 				
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
+				read_active     =1'b1;
 				
 				DA_write=16'hffff;
 				TA_write=1'b0;
@@ -331,6 +339,7 @@ valid_write
 				
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
+				read_active     =1'b1;
 				
 				DA_write=16'hffff;
 				TA_write=1'b0;
@@ -366,7 +375,8 @@ valid_write
 				
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
-				
+				read_active     =1'b0;
+				//read_active     =1'b1;
 				DA_write=16'hffff;
 				TA_write=1'b0;
 				valid_write=1'b0;			
@@ -400,6 +410,7 @@ valid_write
 				
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
+				read_active     =1'b1;
 				
 				DA_write=16'hffff;
 				TA_write=1'b0;
@@ -407,11 +418,13 @@ valid_write
 			end
 			STATE_WRITE_CACHE:
 			begin
-				ns=STATE_WAIT;
+				//ns=STATE_WAIT;
+				ns=STATE_IDLE;
 
 				valid_read       =1'b0;
 				core_out         =core_out_register_out;
 				core_wait        =1'b1;
+				
 				
 				D_req            =1'b0;
 				D_addr           =D_addr_register_out;
@@ -427,11 +440,13 @@ valid_write
 				
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
+				read_active      =1'b0;
 				
 				DA_write=16'h0000;
 				TA_write=1'b1;
 				valid_write=1'b1;		
 			end
+
 			STATE_WAIT:
 			begin
 				ns               =STATE_IDLE;
@@ -439,6 +454,7 @@ valid_write
 				valid_read       =1'b0;
 				core_out         =core_out_register_out;
 				core_wait        =1'b0;
+				read_active      =1'b0;
 				
 				D_req            =1'b0;
 				D_addr           =D_addr_register_out;
@@ -458,6 +474,7 @@ valid_write
 				TA_write=1'b0;
 				valid_write=1'b0;		
 			end
+
 			default:
 			begin
 				ns               =STATE_IDLE;
@@ -465,6 +482,7 @@ valid_write
 				valid_read       =1'b0;
 				core_out         =32'd0;
 				core_wait        =1'b0;
+				read_active      =1'b0;
 				
 				D_req            =1'b0;
 				D_addr           =32'd0;

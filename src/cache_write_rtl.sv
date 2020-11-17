@@ -282,7 +282,7 @@ begin
 			ns=STATE_START;
 			D_req             =1'b0;
 			D_write           =1'b0;
-			core_wait         =1'b0;
+			core_wait         =1'b1;
 			//D_type            =D_type_register_out;
 			D_type            =core_type;
 			//D_addr            =D_addr_register_out;

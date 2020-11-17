@@ -76,6 +76,7 @@ module L1C_data(
   logic        [                 15:0] DA_write_read;
   logic                                DA_read_read;
   logic                                valid_read_read;
+  logic                                read_active;
 cache_write cah_wr(
 					.clk(clk),
 					.rst(rst),
@@ -143,7 +144,8 @@ cache_read cahre(
 				  .TA_read(TA_read_read),//output
 				  .TA_write(TA_write_read),
 				  .valid_read(valid_read_read),
-				  .valid_write(valid_write)
+				  .valid_write(valid_write),
+				  .read_active(read_active)
   
 );
 cache_write_read_arbitor cah_arbitor(
@@ -151,6 +153,7 @@ cache_write_read_arbitor cah_arbitor(
 								.rst(rst),
 								.core_req(core_req),
 								.core_write(core_write),
+								.read_active(read_active),
 								.core_wait_read(core_wait_read),
 								.core_wait_write(core_wait_write),
 								.D_req_read(D_req_read),
@@ -177,6 +180,7 @@ cache_write_read_arbitor cah_arbitor(
 								.DA_read_write(DA_read_write),
 								.valid_read_read(valid_read_read),
 								.valid_read_write(valid_read_write),
+
 								
 								.core_wait_data(core_wait),
 								

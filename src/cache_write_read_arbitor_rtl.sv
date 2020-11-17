@@ -6,6 +6,7 @@ module cache_write_read_arbitor(
 								rst,
 								core_req,
 								core_write,
+								read_active,
 								core_wait_read,
 								core_wait_write,
 								D_req_read,
@@ -66,6 +67,7 @@ module cache_write_read_arbitor(
   input                                rst;
   input                                core_req;
   input                                core_write;
+  input                                read_active;
 
   input                                core_wait_write;//1
   input                                D_req_write;//1
@@ -176,7 +178,17 @@ module cache_write_read_arbitor(
 		begin
 			write_operation=write_operation_register_out;
 			decide_signal=(write_operation)?write_signal:read_signal;
-			ns=decide_signal[244]?STATE_OPERATION:STATE_IDLE;
+			//ns=decide_signal[244]?STATE_OPERATION:STATE_IDLE;
+
+			if(write_operation)
+			begin
+				ns=decide_signal[244]?STATE_OPERATION:STATE_IDLE;
+			end
+			else
+			begin
+			        ns=read_active?STATE_OPERATION:STATE_IDLE;
+			end
+
 		end
 	endcase
   end
