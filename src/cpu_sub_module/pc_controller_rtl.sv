@@ -7,7 +7,7 @@
 						pc_jump_control,
 						pc_stall,
 						enable_jump,
-						bus_stall,
+						cpu_stall,
 						
 						pc_data
 						);
@@ -22,7 +22,7 @@
   input                        pc_jump_control;
   input                        pc_stall;
   input                        enable_jump;
-  input                        bus_stall;
+  input                        cpu_stall;
   
   
   always_comb
@@ -33,7 +33,7 @@
 	end
 	else
 	begin
-		pc_data=bus_stall?pc:(enable_jump?(pc_jump_control?pc_jump_address:next_pc):next_pc);
+		pc_data=cpu_stall?pc:(enable_jump?(pc_jump_control?pc_jump_address:next_pc):next_pc);
 	end
   end
   

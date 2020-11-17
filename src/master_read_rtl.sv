@@ -10,7 +10,6 @@ module master_read #(
 	cpu_read_signal,
 	im_read_pause,
 	address,
-	instruction_stall,
 	
 	read_data,
 	read_pause_cpu,
@@ -44,7 +43,6 @@ module master_read #(
 	input                             cpu_read_signal;
     input        [              31:0] address; 	
 	input                             im_read_pause;
-	input                             instruction_stall;
 
 	
 	

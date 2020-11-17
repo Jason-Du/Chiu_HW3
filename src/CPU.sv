@@ -24,18 +24,14 @@ module CPU(
 			rst,
 			im_dataout,
 			dm_dataout,
-			bus_stall,
+			cpu_stall,
+			im_core_type,
 
-
-//			im_cs,
-//			im_oe,
-//			im_web,
 			im_addr,
 			im_read_mem,
-//   		im_datain,
-//			dm_cs,
-//			dm_oe,
-			dm_web,
+
+			//dm_web,
+			dm_core_type,
 			dm_addr,
 			dm_datain,
 			dm_write_mem,
@@ -49,19 +45,13 @@ input                        clk;
 input                        rst;
 input        [DATA_SIZE-1:0] im_dataout;
 input        [DATA_SIZE-1:0] dm_dataout;
-input						 bus_stall;
+input						 cpu_stall;
 
   
   
   
-//output logic                 im_cs;
-//output logic                 im_oe;
-//output logic [          3:0] im_web;
 output logic [         31:0] im_addr;
-//output logic [DATA_SIZE-1:0] im_datain;
-//output logic                 dm_cs;
-//output logic                 dm_oe;
-output logic [          3:0] dm_web;
+//output logic [          3:0] dm_web;
 output logic [         31:0] dm_addr;
 output logic [DATA_SIZE-1:0] dm_datain;
 output logic                 dm_write_mem;
@@ -69,6 +59,8 @@ output logic                 dm_read_mem;
 
 //output logic                 im_write_mem;
 output logic                 im_read_mem;
+output logic [          2:0] im_core_type;
+output logic [          2:0] dm_core_type;
 
 logic        [DATA_SIZE-1:0] pc_data;
 logic        [DATA_SIZE-1:0] next_pc;
@@ -149,7 +141,7 @@ pc_controller ptl(.pc(pc_register_out),
 				  .pc_jump_control(stage3_register_out[133]),
 				  .pc_stall(pc_stall),
 				  .enable_jump(stage3_register_out[141]),
-				  .bus_stall(bus_stall),		
+				  .cpu_stall(cpu_stall),		
 
 				  .pc_data(pc_data)
 					);
@@ -177,15 +169,12 @@ begin:if_comb
 	//im_web=4'b1111;
 	//im_datain=32'd0;
 	im_dataout_data=rst?32'd0:im_dataout;
-	//stage1_register_in=if_id_rst?64'd0:((bus_stall||instruction_stall)?stage1_register_out:{im_dataout_data,pc_register_out});
-	stage1_register_in=(bus_stall||instruction_stall)?stage1_register_out:(if_id_rst?64'd0:{im_dataout_data,pc_register_out});
+	stage1_register_in=(cpu_stall||instruction_stall)?stage1_register_out:(if_id_rst?64'd0:{im_dataout_data,pc_register_out});
 end
 if_id_rst_controller ifidrst(
 					.local_rst(stage3_register_out[134]),
-					//.global_rst(rst),
 					.pc_jump_control(stage3_register_out[133]),
 					.enable_jump(stage3_register_out[141]),
-					//.bus_stall(bus_stall),
 					.rst_data(if_id_rst)
 					);
 
@@ -202,7 +191,7 @@ begin:if_id
 end
 always_comb
 begin:id_comb
-	stage2_register_in=(bus_stall)?stage2_register_out:(id_exe_rst?158'd0:{
+	stage2_register_in=(cpu_stall)?stage2_register_out:(id_exe_rst?158'd0:{
 						wb_control,
 						enable_jump,
 						write_reg,
@@ -220,7 +209,7 @@ begin:id_comb
 						imm_data,
 						stage1_register_out[31:0]
 						});	
-	write_reg_bus=bus_stall?1'b0:stage3_register_out[140];
+	write_reg_bus=cpu_stall?1'b0:stage3_register_out[140];
 end
 decoder dc(
 			.instruction(stage1_register_out[63:32]),
@@ -294,11 +283,9 @@ imm_extended iex(
 	//modify
 id_exe_rst_controller idexerst(
 				.local_rst(stage3_register_out[135]),
-				//.global_rst(rst),
 				.pc_jump_control(stage3_register_out[133]),
 				.pc_stall(pc_stall),
-				.enable_jump(stage3_register_out[141]),
-				//.bus_stall(bus_stall),				
+				.enable_jump(stage3_register_out[141]),			
 				.rst_data(id_exe_rst)
 				);
 
@@ -315,7 +302,7 @@ begin:id_exe
 end
 always_comb
 begin:exe_comb
-	stage3_register_in=(bus_stall)?stage3_register_out:(exe_mem_rst?143'd0:{
+	stage3_register_in=(cpu_stall)?stage3_register_out:(exe_mem_rst?143'd0:{
 					stage2_register_out[157],
 					stage2_register_out[156],
 					stage2_register_out[155],
@@ -386,7 +373,6 @@ load_hazard lhd(
 				.pc_stall(pc_stall),
 				.instruction_stall(instruction_stall),
 				.pc_jump_confirm(stage3_register_out[133]),
-				.bus_stall(1'b0)
 				);
 forwarding_unit fwu(
 					.exe_mem_write_reg(stage3_register_out[140]),
@@ -404,10 +390,8 @@ forwarding_unit fwu(
 	//modify
 exe_mem_rst_controller exememrst(
 					.local_rst(stage3_register_out[134]),
-					//.global_rst(rst),
 					.pc_jump_control(stage3_register_out[133]),
-					.enable_jump(stage3_register_out[141]),
-					//.bus_stall(bus_stall),					
+					.enable_jump(stage3_register_out[141]),				
 					.rst_data(exe_mem_rst)
 					);
 
@@ -432,7 +416,7 @@ begin:mem_comb
 	//dm_addr={16'h0001,2'b00,quotient[13:0]};
 	dm_addr=stage3_register_out[127:96];
 	dm_web=(stage3_register_out[139])?web_data:4'b1111;
-	stage4_register_in=(bus_stall)?stage4_register_out:{
+	stage4_register_in=(cpu_stall)?stage4_register_out:{
 					stage3_register_out[140],
 					stage3_register_out[132:128],
 					wb_data

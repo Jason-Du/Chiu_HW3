@@ -2,6 +2,8 @@
 `include "../include/AXI_define.svh"
 `include"master_read_rtl.sv"
 `include"master_write_rtl.sv"
+`include"L1C_data.sv"
+`include"L1C_inst.sv"
 `include"CPU.sv"
 module CPU_wrapper(
 
@@ -155,6 +157,7 @@ module CPU_wrapper(
 
 	logic        [              31:0] dm_write_data;
 	logic                             cpu_pause;
+	logic                             bus_stall;
 	logic        [              31:0] dm_read_data;
 	logic        [              31:0] im_read_data;
 	
@@ -188,6 +191,20 @@ module CPU_wrapper(
 	logic        [              31:0] dm_D_read_data;
 	logic        [              31:0] dm_D_write_data;
 	logic        [              31:0] dm_D_write_signal;
+	
+	logic                             im_mem_read_signal;
+	logic                             im_core_read_signal;
+	logic        [              31:0] im_core_out;
+	logic        [               2:0] im_core_type;
+	logic                             im_core_wait;
+	logic        [              31:0] im_I_read_data;
+	logic                             im_I_req;
+	logic        [              31:0] im_I_addr;
+	logic                             im_I_write_signal;
+	logic        [              31:0] im_I_write_data;
+	logic        [               2:0] im_I_type;
+	//logic        [              31:0] im_core_in;
+	
 	//logic 		 dm_D_write;//TO WRAPPER TO MEM
 	//logic [31:0] dm_D_in;//TO WRAPPER TO MEM
 	
@@ -196,30 +213,51 @@ module CPU_wrapper(
 	
 
 
-	logic [ 2:0] im_core_type;
+	
 
 
 	//logic        [              31:0] im_write_data;
 	//logic        [               3:0] im_web;
 	always_comb
 	begin
-		cpu_pause=(dm_read_pause||dm_write_pause||im_read_pause)?1'b1:1'b0;
-		dm_core_req=dm_write_mem||dm_core_write_signal;
-		dm_mem_read_signal =(dm_D_req)&&(dm_D_write_signal==1'b0)
-		dm_mem_write_signal=(dm_D_req)&&(dm_D_write_signal)	
+		cpu_pause=(im_core_wait||dm_core_wait)
+		bus_stall=(dm_read_pause||dm_write_pause||im_read_pause)?1'b1:1'b0;
+		dm_core_req=dm_core_read_signal||dm_core_write_signal;
+		dm_mem_read_signal =(dm_D_req)&&(dm_D_write_signal==1'b0);
+		dm_mem_write_signal=(dm_D_req)&&(dm_D_write_signal);
+		im_mem_read_signal =(im_I_req)&&(im_I_write_signal==1'b0);
+		
 	end
-	
-
-	
+	L1C_inst IM_L1(
+				.clk(clk),
+				.rst(rst),
+  // Core to CPU wrapper
+				.core_addr(im_core_address),//FROM CPU 
+				.core_req(im_core_read_signal),//FROM CPU 
+				.core_write(1'b0),//FROM CPU 
+				.core_in(im_core_in),//FROM CPU 
+				.core_type(im_core_type),//FROM CPU 
+  // Mem to CPU wrapper
+				.I_out(im_I_read_data),//FROM WRAPPER
+				.I_wait(bus_stall),//FROM WRAPPER
+  // CPU wrapper to core
+				.core_out(im_core_out),//TO CPU
+				.core_wait(im_core_wait),//TO CPU
+				  // CPU wrapper to Mem
+				.I_req(im_I_req),//TO WRAPPER
+				.I_addr(im_I_addr),//TO WRAPPER
+				.I_write(im_I_write_signal),//TO WRAPPER
+				.I_in(im_I_write_data),//TO WRAPPER
+				.I_type(im_I_type)//TO WRAPPER
+);
 	master_read #(4'b0000,4'b0000,4'b0010)imread(
 	.clk(clk),
 	.rst(rst),
-	.cpu_read_signal(im_read_signal),
-	.address(im_address),
+	.cpu_read_signal(im_mem_read_signal),
+	.address(im_I_addr),
 	.im_read_pause(1'b0),
-	.read_data(im_read_data),
+	.read_data(im_I_read_data),
 	.read_pause_cpu(im_read_pause),
-	.instruction_stall(instruction_stall),
 	
 	
 	//READ ADDRESS0
@@ -243,48 +281,18 @@ module CPU_wrapper(
 	.RVALID_M(RVALID_M0)
 	);
 	
-	
-	
-
-
-L1C_inst IM_L1(
-				.clk(clk),
-				.rst(rst),
-  // Core to CPU wrapper
-				.core_addr(),//FROM CPU 
-				.core_req(),//FROM CPU 
-				.core_write(),//FROM CPU 
-				.core_in(),//FROM CPU 
-				.core_type(),//FROM CPU 
-  // Mem to CPU wrapper
-				.I_out(),//FROM WRAPPER
-				.I_wait(),//FROM WRAPPER
-  // CPU wrapper to core
-  
-  
-  
-  
-				.core_out(),//TO CPU
-				.core_wait(),//TO CPU
-				  // CPU wrapper to Mem
-				.I_req(),//TO WRAPPER
-				.I_addr(),//TO WRAPPER
-				.I_write(),//TO WRAPPER
-				.I_in(),//TO WRAPPER
-				.I_type()//TO WRAPPER
-);
-CPU CPU1(
+	CPU CPU1(
 			.clk(clk),
 			.rst(~rst),
 			
 			//.dm_dataout(dm_read_data),
 			
-			.bus_stall(cpu_pause),
+			.cpu_stall(cpu_pause),
 			
-			.im_addr(im_address),
-			.im_read_mem(im_read_signal),
+			.im_addr(im_core_address),
+			.im_read_mem(im_core_read_signal),
 			.im_core_type(im_core_type),
-			.im_dataout(im_read_data),
+			.im_dataout(im_core_out),
 
 			.dm_core_type(dm_core_type),
 			//.dm_web(dm_web),
@@ -296,6 +304,19 @@ CPU CPU1(
 			.dm_read_mem(dm_core_read_signal),
 			.dm_dataout(dm_core_out)
 				);
+	
+
+	
+	
+	
+	     
+	
+
+
+
+
+
+
 L1C_data L1CD(
 			.clk(clk),
 			.rst(rst),
@@ -366,7 +387,6 @@ master_write #(4'b0001,4'b0001,4'b0010)dmwrite (
 		.im_read_pause(im_read_pause),
 		.read_data(dm_D_read_data),
 		.read_pause_cpu(dm_read_pause),
-		.instruction_stall(1'b0),
 
 
 

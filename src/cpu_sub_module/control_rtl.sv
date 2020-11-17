@@ -15,13 +15,20 @@ module control(
 				imm_control,
 				write_mem,
 				read_mem,
-				enable_jump
+				enable_jump,
+				memout_half_word,
+				padding_zero,
+				memin_half_word
 					);
 					
 	output logic        read_reg;
 	output logic        write_reg;
 	output logic        memout_low_byte;
+	output logic        memout_half_word;
+	output logic        padding_zero;
+	
 	output logic        memin_low_byte;
+	output logic        memin_half_word;
 	output logic        wb_control;
 	output logic        write_mem;
 	output logic        read_mem;
@@ -52,7 +59,9 @@ module control(
 				//alu_rd_control  = 5'd0;
 				alu_pc_control  = 3'd0;
 				imm_control     = 3'd0;
-				
+				memout_half_word=1'b0;
+				padding_zero    =1'b0;
+				memin_half_word =1'b0;
 				begin
 					case(funt3)
 						3'b000:
@@ -103,7 +112,45 @@ module control(
 				alu_pc_control  = 3'd0;
 				imm_control     = 3'd1;
 				enable_jump     = 1'b0;
-				memout_low_byte = (funt3==3'b000)?1'b1:1'b0;
+				memin_half_word =1'b0;
+				case(funct3)
+					3'b000:
+					begin
+						memout_low_byte = 1'b1;
+						memout_half_word=1'b0;
+						padding_zero    =1'b0;
+					end
+					3'b001://LH
+					begin
+						memout_low_byte = 1'b1;
+						memout_half_word=1'b1;
+						padding_zero    =1'b0;
+					end
+					3'b010:
+					begin
+						memout_low_byte = 1'b0;
+						memout_half_word=1'b0;
+						padding_zero    =1'b0;						
+					end
+					3'b100://LBU
+					begin
+						memout_low_byte = 1'b1;
+						memout_half_word=1'b0;
+						padding_zero    =1'b1;
+					end
+					3'b101://LHU
+					begin
+						memout_low_byte = 1'b0;
+						memout_half_word=1'b1;
+						padding_zero    =1'b1;
+					end
+					default:
+					begin
+						memout_low_byte =1'b0;
+						memout_half_word=1'b0;
+						padding_zero    =1'b0;
+					end
+				endcase
 			end
 			//I type
 			7'b0010011:
@@ -119,6 +166,9 @@ module control(
 				//alu_rd_control  = 5'd0;
 				alu_pc_control  = 3'd0;
 				//imm_control     = 3'd1;
+				memout_half_word=1'b0;
+				padding_zero    =1'b0;
+				memin_half_word =1'b0;
 				case(funt3)
 					3'b000:
 					begin
@@ -175,7 +225,10 @@ module control(
 				read_mem        = 1'b0;
 				alu_rd_control  = 5'd19;
 				alu_pc_control  = 3'd0;
-				imm_control     = 3'd1;			
+				imm_control     = 3'd1;
+				memout_half_word=1'b0;
+				padding_zero    =1'b0;
+				memin_half_word =1'b0;				
 			end
 			// S type
 			7'b0100011:
@@ -191,7 +244,31 @@ module control(
 				alu_rd_control  = 5'd0;
 				alu_pc_control  = 3'd0;
 				imm_control     = 3'd2;
-				memin_low_byte = (funt3==3'b000)?1'b1:1'b0;
+				memout_half_word=1'b0;
+				padding_zero    =1'b0;
+				case(funct3)
+					3'b000:
+					begin
+						memin_low_byte=1'b1;
+						memin_half_word =1'b0;
+					end
+					3'b001:
+					begin
+						memin_low_byte=1'b0;
+						memin_half_word =1'b1;					
+					end
+					3'b010:
+					begin
+						memin_low_byte=1'b0;
+						memin_half_word =1'b0;
+					end
+					default
+					begin
+						memin_low_byte=1'b0;
+						memin_half_word =1'b0;
+					end
+				endcase
+				//memin_low_byte = (funt3==3'b000)?1'b1:1'b0;
 			end
 			// Btype
 			7'b1100011:
@@ -207,6 +284,9 @@ module control(
 				alu_rd_control  = 5'd0;
 				//alu_pc_control  = 3'd0;
 				imm_control     = 3'd3;
+				memout_half_word=1'b0;
+				padding_zero    =1'b0;
+				memin_half_word =1'b0;
 				case(funt3)
 					3'b000:
 					begin
@@ -251,7 +331,10 @@ module control(
 				read_mem        = 1'b0;
 				alu_rd_control  = 5'd20;
 				alu_pc_control  = 3'd0;
-				imm_control     = 3'd4;			
+				imm_control     = 3'd4;
+				memout_half_word=1'b0;
+				padding_zero    =1'b0;
+				memin_half_word =1'b0;				
 			end
 			//U-type
 			7'b0110111:
@@ -266,7 +349,10 @@ module control(
 				read_mem        = 1'b0;
 				alu_rd_control  = 5'd21;
 				alu_pc_control  = 3'd0;
-				imm_control     = 3'd4;			
+				imm_control     = 3'd4;
+				memout_half_word=1'b0;
+				padding_zero    =1'b0;
+				memin_half_word =1'b0;				
 			end
 			//J-type
 			7'b1101111:
@@ -281,7 +367,10 @@ module control(
 				read_mem        = 1'b0;
 				alu_rd_control  = 5'd22;
 				alu_pc_control  = 3'd7;
-				imm_control     = 3'd5;				
+				imm_control     = 3'd5;
+				memout_half_word=1'b0;
+				padding_zero    =1'b0;
+				memin_half_word =1'b0;				
 			end
 			default:
 			begin
@@ -296,6 +385,9 @@ module control(
 				alu_rd_control  = 5'd0;
 				alu_pc_control  = 3'd0;
 				imm_control     = 3'd0;
+				memout_half_word=1'b0;
+				padding_zero    =1'b0;
+				memin_half_word =1'b0;
 			end
 		endcase
 	end
