@@ -221,19 +221,21 @@ valid_write
 					case(offset)
 						4'd0:
 						begin
-							core_out         =DA_out[127:96];
+							core_out         =DA_out[31:0];
 						end
 						4'd4:
 						begin
-							core_out         =DA_out[95:64];
+							core_out         =DA_out[63:32];
 						end
 						4'd8:
 						begin
-							core_out         =DA_out[63:32];
+							
+							core_out         =DA_out[95:64];
 						end
 						4'd12:
 						begin
-							core_out         =DA_out[31:0];
+							
+							core_out         =DA_out[127:96];
 						end
 						default:
 						begin
@@ -509,5 +511,29 @@ valid_write
 endmodule
 
 
+/*
 
+					case(offset)
+						4'd0:
+						begin
+							core_out         =DA_out[127:96];
+						end
+						4'd4:
+						begin
+							core_out         =DA_out[95:64];
+						end
+						4'd8:
+						begin
+							core_out         =DA_out[63:32];
+						end
+						4'd12:
+						begin
+							core_out         =DA_out[31:0];
+						end
+						default:
+						begin
+							core_out         =32'd0;
+						end						
+					endcase
+*/
 

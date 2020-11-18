@@ -95,8 +95,8 @@ logic        [DATA_SIZE-1:0] rs2_data;
 logic        [DATA_SIZE-1:0] imm_data;
 logic                        if_id_rst;
 logic                        id_exe_rst;
-logic        [        157:0] stage2_register_in;
-logic        [        157:0] stage2_register_out;
+logic        [        160:0] stage2_register_in;
+logic        [        160:0] stage2_register_out;
 logic        [DATA_SIZE-1:0] src1_data;
 logic        [DATA_SIZE-1:0] src2_data;
 logic        [DATA_SIZE-1:0] alu_rd_data;
@@ -107,8 +107,8 @@ logic                        if_id_rst_data;
 logic                        pc_jump_control;
 logic                        pc_stall;
 //logic                        instruction_stall;
-logic        [        142:0] stage3_register_in;
-logic        [        142:0] stage3_register_out;
+logic        [        145:0] stage3_register_in;
+logic        [        145:0] stage3_register_out;
 logic        [DATA_SIZE-1:0] reminder;
 logic        [DATA_SIZE-1:0] quotient;
 logic        [          3:0] web_data;
@@ -126,6 +126,9 @@ logic                 instruction_stall;
 //logic        [         13:0] im_addr0;
 logic        [         31:0] im_dataout_data;
 logic                        write_reg_bus;
+logic        				memout_half_word;
+logic				        padding_zero;
+logic				        memin_half_word;
 
 //DEBUG
 
@@ -168,6 +171,7 @@ begin:if_comb
 	//im_oe=1'b1;
 	//im_web=4'b1111;
 	//im_datain=32'd0;
+	im_core_type=3'd0;
 	im_dataout_data=rst?32'd0:im_dataout;
 	stage1_register_in=(cpu_stall||instruction_stall)?stage1_register_out:(if_id_rst?64'd0:{im_dataout_data,pc_register_out});
 end
@@ -191,7 +195,10 @@ begin:if_id
 end
 always_comb
 begin:id_comb
-	stage2_register_in=(cpu_stall)?stage2_register_out:(id_exe_rst?158'd0:{
+	stage2_register_in=(cpu_stall)?stage2_register_out:(id_exe_rst?161'd0:{
+						memout_half_word,
+						padding_zero,
+						memin_half_word,
 						wb_control,
 						enable_jump,
 						write_reg,
@@ -242,7 +249,10 @@ control cl(
 			.imm_control(imm_control),
 			.write_mem(write_mem),
 			.read_mem(read_mem),
-			.enable_jump(enable_jump)
+			.enable_jump(enable_jump),
+			.memout_half_word(memout_half_word),
+			.padding_zero(padding_zero),
+			.memin_half_word(memin_half_word)
 				);
 register rigt(
 			.rs1_addr(rs1_addr),
@@ -302,7 +312,10 @@ begin:id_exe
 end
 always_comb
 begin:exe_comb
-	stage3_register_in=(cpu_stall)?stage3_register_out:(exe_mem_rst?143'd0:{
+	stage3_register_in=(cpu_stall)?stage3_register_out:(exe_mem_rst?145'd0:{
+					stage2_register_out[160],
+					stage2_register_out[159],
+					stage2_register_out[158],
 					stage2_register_out[157],
 					stage2_register_out[156],
 					stage2_register_out[155],
@@ -372,7 +385,7 @@ load_hazard lhd(
 				
 				.pc_stall(pc_stall),
 				.instruction_stall(instruction_stall),
-				.pc_jump_confirm(stage3_register_out[133]),
+				.pc_jump_confirm(stage3_register_out[133])
 				);
 forwarding_unit fwu(
 					.exe_mem_write_reg(stage3_register_out[140]),
@@ -415,7 +428,7 @@ begin:mem_comb
 	dm_write_mem=stage3_register_out[139];
 	//dm_addr={16'h0001,2'b00,quotient[13:0]};
 	dm_addr=stage3_register_out[127:96];
-	dm_web=(stage3_register_out[139])?web_data:4'b1111;
+	//dm_web=(stage3_register_out[139])?web_data:4'b1111;
 	stage4_register_in=(cpu_stall)?stage4_register_out:{
 					stage3_register_out[140],
 					stage3_register_out[132:128],
@@ -428,7 +441,26 @@ divider4 div4(
 			.reminder(reminder),
 			.quotient(quotient)
 			);
-
+low_byte_control_write_data lwd(
+									.src2(stage3_register_out[63:32]),
+									.memin_low_byte(stage3_register_out[137]),
+									.memin_half_word(stage3_register_out[143]),
+									.mem_address(stage3_register_out[127:96]),
+									
+									.write_data(dm_datain),
+									.core_type(dm_core_type),
+									.web(web_data)
+									);
+low_byte_control_read_data lrd(
+									.memout(dm_dataout),
+									//reminder,
+									.memout_low_byte(stage3_register_out[136]),
+									.memout_half_word(stage3_register_out[145]),
+									.padding_zero(stage3_register_out[144]),
+									
+									.read_mem_data(read_mem_data)
+									);
+/*
 low_byte_control_write_data lwd(
 							.src2(stage3_register_out[63:32]),
 							.memin_low_byte(stage3_register_out[137]),
@@ -442,9 +474,12 @@ low_byte_control_read_data lrd(
 							.memout(dm_dataout),
 							.reminder(reminder),
 							.memout_low_byte(stage3_register_out[136]),
+							.memout_half_word(stage3_register_out[145]),
+							.padding_zero(stage3_register_out[144]),
 							
 							.read_mem_data(read_mem_data)
 							);
+							*/
 wb_controller wbc(
 				.alu_rd_data(stage3_register_out[95:64]),
 				.read_mem_data(read_mem_data),

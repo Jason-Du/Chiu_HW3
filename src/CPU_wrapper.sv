@@ -220,7 +220,7 @@ module CPU_wrapper(
 	//logic        [               3:0] im_web;
 	always_comb
 	begin
-		cpu_pause=(im_core_wait||dm_core_wait)
+		cpu_pause=(im_core_wait||dm_core_wait);
 		bus_stall=(dm_read_pause||dm_write_pause||im_read_pause)?1'b1:1'b0;
 		dm_core_req=dm_core_read_signal||dm_core_write_signal;
 		dm_mem_read_signal =(dm_D_req)&&(dm_D_write_signal==1'b0);
@@ -228,7 +228,7 @@ module CPU_wrapper(
 		im_mem_read_signal =(im_I_req)&&(im_I_write_signal==1'b0);
 		
 	end
-	L1C_inst IM_L1(
+	L1C_inst L1CI(
 				.clk(clk),
 				.rst(rst),
   // Core to CPU wrapper
@@ -340,8 +340,8 @@ L1C_data L1CD(
 			.D_addr(dm_D_addr),//TO WRAPPER
 			.D_write(dm_D_write_signal),//TO WRAPPER
 			.D_in  (dm_D_write_data),//TO WRAPPER
-			.D_type(dm_D_type)//TO WRAPPER
-			.D_out(dm_D_read_data),//FROM WRAPPER
+			.D_type(dm_D_type),//TO WRAPPER
+			.D_out(dm_D_read_data)//FROM WRAPPER
 );
 master_write #(4'b0001,4'b0001,4'b0010)dmwrite (
 	.clk(clk),

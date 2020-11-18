@@ -10,7 +10,8 @@ module master_write#(
 	cpu_write_data,
 	im_read_pause,
 	address,
-	web,
+	D_type,
+	//web,
 	
 	cpu_write_pause,
 
@@ -45,10 +46,11 @@ module master_write#(
 	input                              clk;
 	input                              rst;
 	input                              cpu_write_signal;
-	input        [                3:0] web;
+	//input        [                3:0] web;
 	input        [               31:0] cpu_write_data;
 	input        [               31:0] address;
 	input                              im_read_pause;
+	input        [                2:0] D_type;
 	
 	output logic                       cpu_write_pause;
 
@@ -157,18 +159,44 @@ module master_write#(
 					ns              =3'b001;
 					cpu_write_pause =1'b1;
 					WDATA_M         =cpu_write_data;
+					case(D_type)
+						3'b000://`define CACHE_BYTE `CACHE_TYPE_BITS'b000
+						begin
+							WSTRB_M =address[0]?4'b1101:4'b1110;
+						end
+						3'b001:
+						begin
+							WSTRB_M=4'b1100;
+						end
+						3'b010:
+						begin
+							WSTRB_M=4'b0000;
+						end
+						3'b100:
+						begin
+							WSTRB_M=address[0]?4'b0111:4'b1011;
+						end
+						3'b101:
+						begin
+							WSTRB_M=4'b0011;
+						end
+						default:
+						begin
+							WSTRB_M=4'b1111;
+						end
+					endcase
 				end
 				else
 				begin
 					ns              =3'b000;
 					cpu_write_pause =1'b0;
 					WDATA_M         =32'd0;
+					WSTRB_M         =4'b1111;
 				end
 				//WDATA_M=cpu_write_data;
 				AWID_M              =default_slaveid;
 				AWADDR_M            =32'd0;
 				AWVALID_M           =1'b0;
-				WSTRB_M             =cpu_write_signal?web:4'b1111;
 				WLAST_M             =1'b0;
 				WVALID_M            =1'b0;
 				BREADY_M            =1'b0;

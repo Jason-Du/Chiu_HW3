@@ -6,8 +6,6 @@
 //===============================================
 
 `include "def.svh"
-`include "tag_array_wrapper.sv"
-`include "tag_array/tag_array_rtl.sv"
 
 module cache_props(
 	input clk,
@@ -94,7 +92,7 @@ module cache_props(
 	
 	always_comb
 	begin
-		if(core_req && !core_write)
+		if(core_req && core_wait && !core_write)
 		begin
 			if(valid_bits[index] && (TA_DO==tag))
 			begin
@@ -116,7 +114,7 @@ module cache_props(
 	
 	always_comb
 	begin
-		if(core_req && core_write)
+		if(core_req && core_wait && core_write)
 		begin
 			if(valid_bits[index] && (TA_DO==tag))
 			begin

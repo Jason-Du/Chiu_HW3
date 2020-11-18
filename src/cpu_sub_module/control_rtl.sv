@@ -112,8 +112,8 @@ module control(
 				alu_pc_control  = 3'd0;
 				imm_control     = 3'd1;
 				enable_jump     = 1'b0;
-				memin_half_word =1'b0;
-				case(funct3)
+				memin_half_word = 1'b0;
+				case(funt3)
 					3'b000:
 					begin
 						memout_low_byte = 1'b1;
@@ -122,7 +122,7 @@ module control(
 					end
 					3'b001://LH
 					begin
-						memout_low_byte = 1'b1;
+						memout_low_byte = 1'b0;
 						memout_half_word=1'b1;
 						padding_zero    =1'b0;
 					end
@@ -246,7 +246,7 @@ module control(
 				imm_control     = 3'd2;
 				memout_half_word=1'b0;
 				padding_zero    =1'b0;
-				case(funct3)
+				case(funt3)
 					3'b000:
 					begin
 						memin_low_byte=1'b1;
