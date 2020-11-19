@@ -521,7 +521,7 @@ always_comb
 			end
 			STATE_WRITE_HIT:
 			begin
-			if(D_wait)
+				if(D_wait)
 				begin
 					ns           =STATE_WRITE_MISS;
 					D_write      =1'b1;

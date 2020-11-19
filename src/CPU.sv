@@ -306,7 +306,7 @@ always_ff@(posedge clk or posedge rst)
 begin:id_exe
 	if(rst==1'b1)
 	begin
-		stage2_register_out<=158'd0;
+		stage2_register_out<=161'd0;
 	end
 	else
 	begin
@@ -415,7 +415,7 @@ always_ff@(posedge clk or posedge rst)
 begin:exe_mem
 	if(rst==1'b1)
 	begin
-		stage3_register_out<=143'd0;
+		stage3_register_out<=146'd0;
 	end
 	else
 	begin

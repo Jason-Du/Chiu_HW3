@@ -68,7 +68,7 @@
 		begin
 			core_type =(mem_address[1]==1'b0)?3'b001:3'b101;
 			web       =(mem_address[1]==1'b0)?4'b1100:4'b0011;
-			write_data=(mem_address[1]==1'b0)?{16'd0,src2}:{src2,16'd0};
+			write_data=(mem_address[1]==1'b0)?{16'd0,src2[15:0]}:{src2[15:0],16'd0};
 		end
 		2'b11:
 		begin

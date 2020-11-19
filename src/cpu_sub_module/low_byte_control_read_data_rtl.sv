@@ -18,7 +18,7 @@
  input                        memout_low_byte;
  input					      memout_half_word;
  input                        padding_zero;
- logic                        code_situation;
+ logic        [         2:0]  code_situation;
  always_comb
  begin
 	code_situation={memout_low_byte,memout_half_word,padding_zero};
