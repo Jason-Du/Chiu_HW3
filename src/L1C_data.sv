@@ -544,12 +544,13 @@ always_comb
 					ns=STATE_IDLE;
 					D_write     =1'b0;
 				end
-				D_req             =1'b0;
+	
 				core_wait         =1'b1;
 				core_out          =32'd0;
 				valid_write       =1'b0;
 				vaild_read_signal =1'b0;
-				single_valid_data =1'b0;	
+				single_valid_data =1'b0;
+				D_req             =1'b0;	
 				D_type            =core_type;
 				D_addr            =core_addr;
 				D_in              =core_in;
@@ -711,7 +712,7 @@ always_comb
 			end
 			STATE_WRITE_MISS:
 			begin
-			if(D_wait)
+				if(D_wait)
 				begin
 					ns           =STATE_WRITE_MISS;
 				end

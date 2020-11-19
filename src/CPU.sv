@@ -187,7 +187,7 @@ if_id_rst_controller ifidrst(
 
 always_ff@(posedge clk or posedge rst)
 begin:if_id
-	if(rst==1'b1)
+	if(rst)
 	begin
 		stage1_register_out<=64'd0;
 	end
@@ -304,7 +304,7 @@ id_exe_rst_controller idexerst(
 
 always_ff@(posedge clk or posedge rst)
 begin:id_exe
-	if(rst==1'b1)
+	if(rst)
 	begin
 		stage2_register_out<=161'd0;
 	end
@@ -413,7 +413,7 @@ exe_mem_rst_controller exememrst(
 
 always_ff@(posedge clk or posedge rst)
 begin:exe_mem
-	if(rst==1'b1)
+	if(rst)
 	begin
 		stage3_register_out<=146'd0;
 	end
@@ -496,7 +496,7 @@ wb_controller wbc(
 
 always_ff@(posedge clk or posedge rst)
 begin
-	if(rst==1'b1)
+	if(rst)
 	begin
 		stage4_register_out<=38'd0;
 	end

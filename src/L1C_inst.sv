@@ -438,6 +438,7 @@ always_comb
 					I_addr           =32'd0;
 				end
 				valid_write      =1'b0;
+				vaild_read_signal=1'b0;
 				single_valid_data=single_valid_data_register_out;
 				core_out         =(offset==4'd12)?I_out:core_out_register_out;
 				core_wait        =1'b1;
@@ -545,8 +546,8 @@ always_comb
 				I_type            =core_type;
 				I_addr            =core_addr;
 				I_in              =core_in;
-				I_req        =1'b0;
-				I_write      =1'b0;
+				I_req             =1'b0;
+				I_write           =1'b0;
 				index             =index_register_out;
 				DA_read           =1'b0;
 				TA_in             =TA_in_register_out;
@@ -736,7 +737,7 @@ always_comb
 			begin
 				ns               =STATE_IDLE;
 				valid_write      =1'b0;
-				single_valid_data=1'b0;
+				vaild_read_signal =1'b0;
 				single_valid_data=1'b0;
 				core_out         =32'd0;
 				core_wait        =1'b0;

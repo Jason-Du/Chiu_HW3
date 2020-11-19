@@ -207,6 +207,8 @@ module CPU_wrapper(
 	logic        [              31:0] im_I_read_data;
 	logic        [              31:0] im_I_write_data;
 	logic                             im_I_write_signal;
+	logic                             dm_mem_pause;
+	logic                             im_mem_pause;
 	//logic        [              31:0] im_core_in;
 	
 	//logic 		 dm_D_write;//TO WRAPPER TO MEM
@@ -225,7 +227,9 @@ module CPU_wrapper(
 	always_comb
 	begin
 		cpu_pause=(im_core_wait||dm_core_wait);
-		bus_stall=(dm_read_pause||dm_write_pause||im_read_pause)?1'b1:1'b0;
+		//bus_stall=(dm_read_pause||dm_write_pause||im_read_pause)?1'b1:1'b0;
+		dm_mem_pause=(dm_read_pause||dm_write_pause);
+		im_mem_pause=im_read_pause;
 		dm_core_req=dm_core_read_signal||dm_core_write_signal;
 		dm_mem_read_signal =(dm_D_req)&&(dm_D_write_signal==1'b0);
 		dm_mem_write_signal=(dm_D_req)&&(dm_D_write_signal);
@@ -243,7 +247,7 @@ module CPU_wrapper(
 				.core_type(im_core_type),//FROM CPU 
   // Mem to CPU wrapper
 				.I_out(im_I_read_data),//FROM WRAPPER
-				.I_wait(bus_stall),//FROM WRAPPER
+				.I_wait(im_mem_pause),//FROM WRAPPER
   // CPU wrapper to core
 				.core_out(im_core_out),//TO CPU
 				.core_wait(im_core_wait),//TO CPU
@@ -332,7 +336,7 @@ L1C_data L1CD(
 			.core_type(dm_core_type),//4//FROM CPU 
 			  // Mem to CPU wrapper
 
-			.D_wait(bus_stall),//FROM WRAPPER
+			.D_wait(dm_mem_pause),//FROM WRAPPER
 			  // CPU wrapper to core
 			  
 			  
