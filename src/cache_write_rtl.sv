@@ -5,8 +5,8 @@ module cache_write(
 					rst,
 					core_addr,
 					core_req,
-					core_write,
-					core_in,
+					core_write,//NOTE
+					core_in,//NOTE
 					core_type,//4
 					D_wait,
 					TA_out,
@@ -18,7 +18,7 @@ module cache_write(
 					  // CPU wrapper to Mem
 					D_req,
 					D_addr,
-					D_write,
+					D_write,//NOTE
 					D_in,
 					D_type,
 

@@ -190,19 +190,23 @@ module CPU_wrapper(
 	logic        [               2:0] dm_D_type;
 	logic        [              31:0] dm_D_read_data;
 	logic        [              31:0] dm_D_write_data;
-	logic        [              31:0] dm_D_write_signal;
+	logic                             dm_D_write_signal;
 	
 	logic                             im_mem_read_signal;
-	logic                             im_core_read_signal;
-	logic        [              31:0] im_core_out;
+	
 	logic        [               2:0] im_core_type;
 	logic                             im_core_wait;
-	logic        [              31:0] im_I_read_data;
+	logic        [              31:0] im_core_out;
+	
+	
+	logic                             im_core_read_signal;
+	logic        [              31:0] im_core_address;
 	logic                             im_I_req;
 	logic        [              31:0] im_I_addr;
-	logic                             im_I_write_signal;
-	logic        [              31:0] im_I_write_data;
 	logic        [               2:0] im_I_type;
+	logic        [              31:0] im_I_read_data;
+	logic        [              31:0] im_I_write_data;
+	logic                             im_I_write_signal;
 	//logic        [              31:0] im_core_in;
 	
 	//logic 		 dm_D_write;//TO WRAPPER TO MEM
@@ -230,12 +234,12 @@ module CPU_wrapper(
 	end
 	L1C_inst L1CI(
 				.clk(clk),
-				.rst(rst),
+				.rst(~rst),
   // Core to CPU wrapper
 				.core_addr(im_core_address),//FROM CPU 
 				.core_req(im_core_read_signal),//FROM CPU 
 				.core_write(1'b0),//FROM CPU 
-				.core_in(im_core_in),//FROM CPU 
+				.core_in(32'd0),//FROM CPU 
 				.core_type(im_core_type),//FROM CPU 
   // Mem to CPU wrapper
 				.I_out(im_I_read_data),//FROM WRAPPER
@@ -319,7 +323,7 @@ module CPU_wrapper(
 
 L1C_data L1CD(
 			.clk(clk),
-			.rst(rst),
+			.rst(~rst),
 
 			  // Core to CPU wrapper
 			.core_addr(dm_core_address),//FROM CPU 

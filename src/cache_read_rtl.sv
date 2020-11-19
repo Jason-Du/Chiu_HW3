@@ -377,7 +377,7 @@ valid_write
 				
 				single_vaild_data=single_vaild_data_register_out;
 				offset           =offset_register_out;
-				read_active     =1'b0;
+				read_active     =1'b1;
 				//read_active     =1'b1;
 				DA_write=16'hffff;
 				TA_write=1'b0;

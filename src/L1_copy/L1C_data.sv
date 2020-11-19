@@ -1,7 +1,7 @@
 //================================================
 // Auther:      Chen Yun-Ru (May)
-// Filename:    L1C_inst.sv
-// Description: L1 Cache for instruction
+// Filename:    L1C_data.sv
+// Description: L1 Cache for data
 // Version:     0.1
 //================================================
 `include "../include/def.svh"
@@ -12,39 +12,40 @@
 `include "data_array_wrapper.sv"
 `include "tag_array_wrapper.sv"
 `timescale 1ns/10ps
-module L1C_inst(
+module L1C_data(
   input                               clk,
   input                               rst,
+
   // Core to CPU wrapper
-  input        [      `DATA_BITS-1:0] core_addr,
-  input                               core_req,
-  input                               core_write,
-  input        [      `DATA_BITS-1:0] core_in,
-  input        [`CACHE_TYPE_BITS-1:0] core_type,
+  input        [       `DATA_BITS-1:0] core_addr,//FROM CPU 
+  input                               core_req,//FROM CPU
+  input                               core_write,//FROM CPU
+  input        [       `DATA_BITS-1:0] core_in,//FROM CPU
+  input        [ `CACHE_TYPE_BITS-1:0] core_type,//FROM CPU
   // Mem to CPU wrapper
-  input        [      `DATA_BITS-1:0] I_out,
-  input                               I_wait,
+  input        [       `DATA_BITS-1:0] D_out,//FROM WRAPPER
+  input                                D_wait,//FROM WRAPPER
   // CPU wrapper to core
-  output logic [      `DATA_BITS-1:0] core_out,
-  output logic                        core_wait,
+  output logic [       `DATA_BITS-1:0] core_out,//TO CPU
+  output logic                         core_wait,//TO CPU
   // CPU wrapper to Mem
-  output logic                        I_req,
-  output logic [      `DATA_BITS-1:0] I_addr,
-  output logic                        I_write,
-  output logic [      `DATA_BITS-1:0] I_in,
-  output logic [`CACHE_TYPE_BITS-1:0] I_type
+  output logic                         D_req,//TO WRAPPER
+  output logic [       `DATA_BITS-1:0] D_addr,//TO WRAPPER
+  output logic                         D_write,//TO WRAPPER
+  output logic [       `DATA_BITS-1:0] D_in,//TO WRAPPER
+  output logic [ `CACHE_TYPE_BITS-1:0] D_type//TO WRAPPER
 );
 
-  logic [`CACHE_INDEX_BITS-1:0] index;
-  logic [`CACHE_DATA_BITS-1:0] DA_out;
-  logic [`CACHE_DATA_BITS-1:0] DA_in;
-  logic [`CACHE_WRITE_BITS-1:0] DA_write;
-  logic DA_read;
-  logic [`CACHE_TAG_BITS-1:0] TA_out;
-  logic [`CACHE_TAG_BITS-1:0] TA_in;
-  logic TA_write;
-  logic TA_read;
-  //logic [`CACHE_LINES-1:0] valid;
+  logic        [`CACHE_INDEX_BITS-1:0] index;//6//address
+  logic        [ `CACHE_DATA_BITS-1:0] DA_out;//128//output
+  logic        [ `CACHE_DATA_BITS-1:0] DA_in;//128
+  logic        [`CACHE_WRITE_BITS-1:0] DA_write;//16
+  logic                                DA_read;
+  logic        [  `CACHE_TAG_BITS-1:0] TA_out;//22
+  logic        [  `CACHE_TAG_BITS-1:0] TA_in;//22
+  logic                                TA_write;
+  logic                                TA_read;
+  //logic        [     `CACHE_LINES-1:0] valid;//64
 
   //--------------- complete this part by yourself -----------------//
   logic                                valid_data_from_register;
@@ -52,10 +53,10 @@ module L1C_inst(
   logic                                valid_write;
   
   logic                                core_wait_write;
-  logic                                I_req_write;//1
-  logic        [       `DATA_BITS-1:0] I_addr_write;//32
-  logic        [       `DATA_BITS-1:0] I_in_write;//32
-  logic        [ `CACHE_TYPE_BITS-1:0] I_type_write;//3
+  logic                                D_req_write;//1
+  logic        [       `DATA_BITS-1:0] D_addr_write;//32
+  logic        [       `DATA_BITS-1:0] D_in_write;//32
+  logic        [ `CACHE_TYPE_BITS-1:0] D_type_write;//3
   logic        [                  5:0] index_write; //6
   logic        [                 21:0] TA_in_write;//1
   logic                                TA_write_write;//1
@@ -65,10 +66,10 @@ module L1C_inst(
   logic                                DA_read_write;//1
   logic                                valid_read_write;//1
   logic							       core_wait_read;
-  logic                                I_req_read;
-  logic        [       `DATA_BITS-1:0] I_addr_read;
-  logic        [       `DATA_BITS-1:0] I_in_read;
-  logic        [ `CACHE_TYPE_BITS-1:0] I_type_read;
+  logic                                D_req_read;
+  logic        [       `DATA_BITS-1:0] D_addr_read;
+  logic        [       `DATA_BITS-1:0] D_in_read;
+  logic        [ `CACHE_TYPE_BITS-1:0] D_type_read;
   logic        [                  5:0] index_read; 
   logic        [                 21:0] TA_in_read;
   logic                                TA_write_read;
@@ -86,7 +87,7 @@ cache_write cah_wr(
 					.core_write(core_write),
 					.core_in(core_in),
 					.core_type(core_type),//4
-					.D_wait(I_wait),
+					.D_wait(D_wait),
 					.TA_out(TA_out),
 					//DA_out;
 					.valid_data_from_register(valid_data_from_register),
@@ -94,11 +95,11 @@ cache_write cah_wr(
 					.core_wait(core_wait_write),
 
 					  // CPU wrapper to Mem
-					.D_req(I_req_write),
-					.D_addr(I_addr_write),
-					.D_write(I_write),
-					.D_in(I_in_write),
-					.D_type(I_type_write),
+					.D_req(D_req_write),
+					.D_addr(D_addr_write),
+					.D_write(D_write),
+					.D_in(D_in_write),
+					.D_type(D_type_write),
 
 
 					.index(index_write),
@@ -126,16 +127,16 @@ cache_read cahre(
 				  .core_addr(core_addr),
 				  .core_req(core_req),
 				  .core_type(core_type),//4
-				  .D_out(I_out),
-				  .D_wait(I_wait),
+				  .D_out(D_out),
+				  .D_wait(D_wait),
 				  // CPU wrapper to core
 				  .core_out(core_out),
 				  .core_wait(core_wait_read),
 				  // CPU wrapper to Mem
-				  .D_req(I_req_read),
-				  .D_addr(I_addr_read),
-				  .D_in(I_in_read),
-				  .D_type(I_type_read),
+				  .D_req(D_req_read),
+				  .D_addr(D_addr_read),
+				  .D_in(D_in_read),
+				  .D_type(D_type_read),
 				  .index(index_read),//6//output cache_address
 
 				  .DA_in(DA_in_read),//128//output
@@ -157,14 +158,14 @@ cache_write_read_arbitor cah_arbitor(
 								.read_active(read_active),
 								.core_wait_read(core_wait_read),
 								.core_wait_write(core_wait_write),
-								.D_req_read(I_req_read),
-								.D_req_write(I_req_write),
-								.D_addr_read(I_addr_read),
-								.D_addr_write(I_addr_write),
-								.D_in_read(I_in_read),
-								.D_in_write(I_in_write),
-								.D_type_read(I_type_read),
-								.D_type_write(I_type_write),
+								.D_req_read(D_req_read),
+								.D_req_write(D_req_write),
+								.D_addr_read(D_addr_read),
+								.D_addr_write(D_addr_write),
+								.D_in_read(D_in_read),
+								.D_in_write(D_in_write),
+								.D_type_read(D_type_read),
+								.D_type_write(D_type_write),
 								.index_read(index_read),
 								.index_write(index_write),
 								.TA_in_read(TA_in_write),
@@ -185,13 +186,13 @@ cache_write_read_arbitor cah_arbitor(
 								
 								.core_wait_data(core_wait),
 								
-								.D_req_data(I_req),
+								.D_req_data(D_req),
 								
-								.D_addr_data(I_addr),
+								.D_addr_data(D_addr),
 								
-								.D_in_data(I_in),
+								.D_in_data(D_in),
 								
-								.D_type_data(I_type),
+								.D_type_data(D_type),
 								
 								.index_data(index),
 								
