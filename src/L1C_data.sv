@@ -129,6 +129,7 @@ always_comb
 				begin
 					ns               =STATE_CHECK_HIT_READ;
 					single_valid_data=valid_data_from_register;
+					vaild_read_signal=1'b1;
 					core_wait        =1'b1;
 					
 					D_addr           =core_addr;
@@ -144,6 +145,7 @@ always_comb
 				begin
 					ns               =STATE_CHECK_HIT_WRITE;
 					single_valid_data =valid_data_from_register;
+					vaild_read_signal=1'b1;
 					core_wait        =1'b1;
 					
 					D_addr           =core_addr;
@@ -160,6 +162,7 @@ always_comb
 				begin
 					ns               =STATE_IDLE;
 					single_valid_data=1'd0;
+					vaild_read_signal=1'b0;
 					core_wait        =1'b0;
 					D_addr           =32'd0;
 					D_write          =1'b0;
@@ -220,6 +223,7 @@ always_comb
 				end
 				valid_write      =1'b0;
 				single_valid_data=single_valid_data_register_out;
+				vaild_read_signal=1'b1;
 				core_wait        =1'b1;
 				D_write          =1'b0;
 				D_addr           ={D_addr_register_out[31:2],2'b00};
@@ -254,6 +258,7 @@ always_comb
 				end
 				valid_write      =1'b0;
 				single_valid_data =single_valid_data_register_out;
+				vaild_read_signal=1'b0;
 				core_out         =(offset==4'd0)?D_out:32'd0;
 				core_wait        =1'b1;
 				D_req            =1'b0;
@@ -276,6 +281,7 @@ always_comb
 				D_req            =1'b1;
 				valid_write      =1'b0;
 				single_valid_data =single_valid_data_register_out;
+				vaild_read_signal=1'b0;
 				core_out         =core_out_register_out;
 				core_wait        =1'b1;
 				D_write          =1'b0;
@@ -305,6 +311,7 @@ always_comb
 				end
 				valid_write      =1'b0;
 				single_valid_data =single_valid_data_register_out;
+				vaild_read_signal=1'b0;
 				core_out         =(offset==4'd4)?D_out:core_out_register_out;
 				core_wait        =1'b1;
 				
@@ -329,6 +336,7 @@ always_comb
 				D_req            =1'b1;
 				valid_write      =1'b0;
 				single_valid_data =single_valid_data_register_out;
+				vaild_read_signal=1'b0;
 				core_out         =core_out_register_out;
 				core_wait        =1'b1;
 				D_write          =1'b0;
@@ -358,6 +366,7 @@ always_comb
 				valid_write      =1'b0;
 				single_valid_data =single_valid_data_register_out;
 				core_out         =(offset==4'd8)?D_out:core_out_register_out;
+				vaild_read_signal=1'b0;
 				core_wait        =1'b1;
 				D_req            =1'b0;
 				D_write          =1'b0;
@@ -381,6 +390,7 @@ always_comb
 				D_req            =1'b1;
 				valid_write      =1'b0;
 				single_valid_data=single_valid_data_register_out;
+				vaild_read_signal=1'b0;
 				core_out         =core_out_register_out;
 				core_wait        =1'b1;
 				D_write          =1'b0;
@@ -409,6 +419,7 @@ always_comb
 				end
 				valid_write      =1'b0;
 				single_valid_data=single_valid_data_register_out;
+				vaild_read_signal=1'b0;
 				core_out         =(offset==4'd12)?D_out:core_out_register_out;
 				core_wait        =1'b1;
 				D_write          =1'b0;
@@ -438,6 +449,7 @@ always_comb
 				ns=STATE_IDLE;
 
 				valid_write      =1'b1;
+				vaild_read_signal=1'b0;
 				single_valid_data=single_valid_data_register_out;				
 				core_out         =core_out_register_out;
 				core_wait        =1'b1;
@@ -494,6 +506,7 @@ always_comb
 					D_req             =1'b0;
 				end
 				valid_write       =1'b0;
+				vaild_read_signal =1'b1;
 				single_valid_data =valid_data_from_register;
 				core_out          =32'd0;
 				core_wait         =1'b1;
@@ -535,6 +548,7 @@ always_comb
 				core_wait         =1'b1;
 				core_out          =32'd0;
 				valid_write       =1'b0;
+				vaild_read_signal =1'b0;
 				single_valid_data =1'b0;	
 				D_type            =core_type;
 				D_addr            =core_addr;
@@ -700,19 +714,18 @@ always_comb
 			if(D_wait)
 				begin
 					ns           =STATE_WRITE_MISS;
-					D_req        =1'b1;
-					D_write      =1'b1;
 				end
 				else
 				begin
 					ns=STATE_IDLE;
-					D_req       =1'b0;
-					D_write     =1'b0;
 				end
 				core_wait         =1'b1;
 				core_out          =32'd0;
 				valid_write       =1'b0;
-				single_valid_data =1'b0;	
+				vaild_read_signal =1'b0;
+				single_valid_data =1'b0;
+				D_req             =1'b0;	
+				D_write           =1'b0;
 				D_type            =core_type;
 				D_addr            =core_addr;
 				D_in              =core_in;
@@ -729,6 +742,7 @@ always_comb
 			begin
 				ns               =STATE_IDLE;
 				valid_write      =1'b0;
+				vaild_read_signal=1'b0;
 				single_valid_data=1'b0;
 				core_out         =32'd0;
 				core_wait        =1'b0;

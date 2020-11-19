@@ -143,6 +143,7 @@ always_comb
 				if(core_req&&(!core_write))
 				begin
 					ns               =STATE_CHECK_HIT_READ;
+					vaild_read_signal=1'b1;
 					single_valid_data=valid_data_from_register;
 					core_wait        =1'b1;
 					
@@ -158,7 +159,8 @@ always_comb
 				else if(core_req&&core_write)
 				begin
 					ns               =STATE_CHECK_HIT_WRITE;
-					single_valid_data =valid_data_from_register;
+					vaild_read_signal=1'b1;
+					single_valid_data=valid_data_from_register;
 					core_wait        =1'b1;
 					
 					I_addr           =core_addr;
@@ -174,6 +176,7 @@ always_comb
 				else
 				begin
 					ns               =STATE_IDLE;
+					vaild_read_signal=1'b0;
 					single_valid_data=1'd0;
 					core_wait        =1'b0;
 					I_addr           =32'd0;
@@ -238,6 +241,7 @@ always_comb
 					I_req        =1'b1;
 				end
 				valid_write      =1'b0;
+				vaild_read_signal=1'b1;
 				single_valid_data=single_valid_data_register_out;
 				core_wait        =1'b1;
 				I_write          =1'b0;
@@ -272,7 +276,9 @@ always_comb
 					I_addr           =I_addr_register_out+32'd4;
 				end
 				valid_write      =1'b0;
-				single_valid_data =single_valid_data_register_out;
+				vaild_read_signal=1'b0;
+				single_valid_data=single_valid_data_register_out;
+
 				core_out         =(offset==4'd0)?I_out:32'd0;
 				core_wait        =1'b1;
 				
@@ -294,6 +300,7 @@ always_comb
 				ns               =STATE_READ_MEM2;
 				I_addr           =I_addr_register_out;
 				valid_write      =1'b0;
+				vaild_read_signal=1'b0;
 				single_valid_data =single_valid_data_register_out;
 				core_out         =core_out_register_out;
 				core_wait        =1'b1;
@@ -323,6 +330,7 @@ always_comb
 					I_addr           =I_addr_register_out+32'd4;
 				end
 				valid_write      =1'b0;
+				vaild_read_signal=1'b0;
 				single_valid_data =single_valid_data_register_out;
 				core_out         =(offset==4'd4)?I_out:core_out_register_out;
 				core_wait        =1'b1;
@@ -346,6 +354,7 @@ always_comb
 				ns               =STATE_READ_MEM3;
 				I_addr           =I_addr_register_out;
 				valid_write      =1'b0;
+				vaild_read_signal=1'b0;
 				single_valid_data =single_valid_data_register_out;
 				core_out         =core_out_register_out;
 				core_wait        =1'b1;
@@ -375,6 +384,7 @@ always_comb
 					I_addr           =I_addr_register_out+32'd4;
 				end
 				valid_write      =1'b0;
+				vaild_read_signal=1'b0;
 				single_valid_data =single_valid_data_register_out;
 				core_out         =(offset==4'd8)?I_out:core_out_register_out;
 				core_wait        =1'b1;
@@ -398,6 +408,7 @@ always_comb
 				ns               =STATE_READ_MEM4;
 				I_addr           =I_addr_register_out;
 				valid_write      =1'b0;
+				vaild_read_signal=1'b0;
 				single_valid_data =single_valid_data_register_out;
 				core_out         =core_out_register_out;
 				core_wait        =1'b1;
@@ -457,6 +468,7 @@ always_comb
 				ns=STATE_IDLE;
 
 				valid_write      =1'b1;
+				vaild_read_signal=1'b0;
 				single_valid_data=single_valid_data_register_out;				
 				core_out         =core_out_register_out;
 				core_wait        =1'b1;
@@ -490,6 +502,7 @@ always_comb
 					I_write      =1'b0;
 				end
 				valid_write       =1'b0;
+				vaild_read_signal =1'b1;
 				single_valid_data =valid_data_from_register;
 				core_out          =32'd0;
 				core_wait         =1'b1;
@@ -527,7 +540,8 @@ always_comb
 				core_wait         =1'b1;
 				core_out          =32'd0;
 				valid_write       =1'b0;
-				single_valid_data =1'b0;	
+				vaild_read_signal =1'b0;
+				single_valid_data =single_valid_data_register_out;	
 				I_type            =core_type;
 				I_addr            =core_addr;
 				I_in              =core_in;
@@ -694,19 +708,18 @@ always_comb
 			if(I_wait)
 				begin
 					ns           =STATE_WRITE_MISS;
-					I_req        =1'b1;
-					I_write      =1'b1;
 				end
 				else
 				begin
 					ns=STATE_IDLE;
-					I_req       =1'b0;
-					I_write     =1'b0;
 				end
 				core_wait         =1'b1;
 				core_out          =32'd0;
 				valid_write       =1'b0;
-				single_valid_data =1'b0;	
+				vaild_read_signal =1'b0;
+				single_valid_data =single_valid_data_register_out;	
+				I_req             =1'b0;
+				I_write           =1'b0;
 				I_type            =core_type;
 				I_addr            =core_addr;
 				I_in              =core_in;
@@ -723,6 +736,7 @@ always_comb
 			begin
 				ns               =STATE_IDLE;
 				valid_write      =1'b0;
+				single_valid_data=1'b0;
 				single_valid_data=1'b0;
 				core_out         =32'd0;
 				core_wait        =1'b0;
