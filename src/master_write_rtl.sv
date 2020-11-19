@@ -8,10 +8,8 @@ module master_write#(
 	rst,
 	cpu_write_signal,
 	cpu_write_data,
-	im_read_pause,
 	address,
 	D_type,
-	//web,
 	
 	cpu_write_pause,
 
@@ -43,14 +41,15 @@ module master_write#(
 
 );
 //-------------SYSTEM
+	localparam STATE_IDLE        =2'b00;
+	localparam STATE_SEND_ADDRESS=2'b01;
+	localparam STATE_SEND_DATA   =2'b10;
+	localparam STATE_GET_RESPONSE=2'b11;
 	input                              clk;
 	input                              rst;
 	input                              cpu_write_signal;
-	//input        [                3:0] web;
 	input        [               31:0] cpu_write_data;
 	input        [               31:0] address;
-	input                              im_read_pause;
-	input        [                2:0] D_type;
 	
 	output logic                       cpu_write_pause;
 
@@ -84,11 +83,12 @@ module master_write#(
 	input        [  `AXI_ID_BITS-1:0] BID_M;
 	input        [               1:0] BRESP_M;
 	input                             BVALID_M;
+	input        [               2:0] D_type;
 	
+
 	
-	
-	logic         [               2:0] cs;
-	logic         [               2:0] ns;
+	logic         [               1:0] cs;
+	logic         [               1:0] ns;
 	logic	      [               3:0] WSTRB_M_register_out;
 	logic         [              31:0] AWADDR_M_register_out;
 	logic         [              31:0] WDATA_M_register_out;
@@ -121,7 +121,7 @@ module master_write#(
 	begin
 		if(!rst)
 		begin
-			cs<=3'b000;
+			cs<=STATE_IDLE;
 		end
 		else
 		begin
@@ -152,11 +152,11 @@ module master_write#(
 	always_comb
 	begin
 		case(cs)
-			3'b000:
+			STATE_IDLE:
 			begin
 				if(cpu_write_signal==1'b1)
 				begin
-					ns              =3'b001;
+					ns              =STATE_SEND_ADDRESS;
 					cpu_write_pause =1'b1;
 					WDATA_M         =cpu_write_data;
 					case(D_type)
@@ -188,10 +188,10 @@ module master_write#(
 				end
 				else
 				begin
-					ns              =3'b000;
+					ns              =STATE_IDLE;
 					cpu_write_pause =1'b0;
 					WDATA_M         =32'd0;
-					WSTRB_M         =4'b1111;
+					WSTRB_M=4'b1111;
 				end
 				//WDATA_M=cpu_write_data;
 				AWID_M              =default_slaveid;
@@ -201,15 +201,15 @@ module master_write#(
 				WVALID_M            =1'b0;
 				BREADY_M            =1'b0;
 			end
-			3'b001:
+			STATE_SEND_ADDRESS:
 			begin
 				if(AWREADY_M_register_out==1'b1)
 				begin
-					ns=3'b010;
+					ns=STATE_SEND_DATA;
 				end
 				else
 				begin
-					ns=3'b001;
+					ns=STATE_SEND_ADDRESS;
 
 				end
 				AWID_M         =slaveid;
@@ -227,16 +227,16 @@ module master_write#(
 				BREADY_M       =1'b0;
 				cpu_write_pause=1'b1;	
 			end
-			3'b010:
+			STATE_SEND_DATA:
 			begin
 				if(WREADY_M_register_out==1'b1)
 				begin
-					ns         =3'b011;
+					ns         =STATE_GET_RESPONSE;
 					WVALID_M   =1'b1;
 				end
 				else
 				begin
-					ns         =3'b010;
+					ns         =STATE_SEND_DATA;
 					WVALID_M   =1'b0;
 				end
 				
@@ -254,17 +254,17 @@ module master_write#(
 				//BREADY_M=BVALID_M?1'b1:1'b0;
 				cpu_write_pause=1'b1;					
 			end				
-			3'b011:
+			STATE_GET_RESPONSE:
 			begin
 				//if(BVALID_M==1'b1 && BRESP_M==2'b00 && BID_M==slaveid)
 				//if(BVALID_M_register_out==1'b1 && BRESP_M_register_out==2'b00 && BID_M_register_out==masterid)
 				if(BVALID_M==1'b1)
 				begin
-					ns=3'b100;
+					ns=STATE_IDLE;
 				end
 				else
 				begin
-					ns=3'b011;
+					ns=STATE_GET_RESPONSE;
 				end
 				BREADY_M       =1'b1;
 				AWID_M         =AWID_M_register_out;
@@ -277,25 +277,9 @@ module master_write#(
 				WLAST_M        =1'b0;
 				WVALID_M       =1'b0;
 					//WRITE RESPONSE1
-				
 				cpu_write_pause=1'b1;	
 			end
-			3'b100:
-			begin
-				ns              =im_read_pause?3'b100:3'b000;
-				AWID_M          =AWID_M_register_out;
-				AWADDR_M        =AWADDR_M_register_out;
-				
-				AWVALID_M       =1'b0;
-					//WRITE DATA1
-				WDATA_M         =WDATA_M_register_out;
-				WSTRB_M         =WSTRB_M_register_out;
-				WLAST_M         =1'b0;
-				WVALID_M        =1'b0;
-					//WRITE RESPONSE1
-				BREADY_M        =1'b0;
-				cpu_write_pause =(im_read_pause==1'b1)?1'b1:1'b0;					
-			end
+			/*
 			default:
 			begin
 				ns             =3'b000;
@@ -312,6 +296,7 @@ module master_write#(
 				BREADY_M       =1'b0;
 				cpu_write_pause=1'b0;		
 			end
+			*/
 		endcase
 	end
 	always_comb

@@ -39,10 +39,13 @@ module L1C_data(
   localparam STATE_READ_MEM3        =4'b0100;
   localparam STATE_READ_MEM4        =4'b0101;
   localparam STATE_WRITE_CACHE      =4'b0110;
-  localparam STATE_WAIT             =4'b0111;
+  
   localparam STATE_CHECK_HIT_WRITE  =4'b1000;
   localparam STATE_WRITE_MISS       =4'b1001;  
   localparam STATE_WRITE_HIT        =4'b1010;
+  localparam STATE_SEND_READ_MEM2   =4'b0111;
+  localparam STATE_SEND_READ_MEM3   =4'b1011;
+  localparam STATE_SEND_READ_MEM4   =4'b1100;
   logic        [`CACHE_INDEX_BITS-1:0] index;//6//address
   logic        [ `CACHE_DATA_BITS-1:0] DA_out;//128//output
   logic        [ `CACHE_DATA_BITS-1:0] DA_in;//128
@@ -176,10 +179,6 @@ always_comb
 				DA_write=16'hffff;
 				DA_in   =128'd0;
 				TA_write=1'b0;
-				
-				
-
-
 			end
 			STATE_CHECK_HIT_READ:
 			begin
@@ -257,8 +256,28 @@ always_comb
 				single_valid_data =single_valid_data_register_out;
 				core_out         =(offset==4'd0)?D_out:32'd0;
 				core_wait        =1'b1;
-				
+				D_req            =1'b0;
+				D_write          =1'b0;
+				D_in             =32'd0;
+				D_type           =D_type_register_out;
+				index            =index_register_out;
+				DA_write         =16'hffff;
+				DA_read          =1'b0;
+				DA_in            ={96'd0,D_out};
+				TA_write         =1'b0;
+				TA_read          =1'b0;
+				TA_in            =TA_in_register_out;
+				offset           =offset_register_out;
+			end
+			STATE_SEND_READ_MEM2:
+			begin
+				ns               =STATE_READ_MEM2;
+				D_addr           =D_addr_register_out;
 				D_req            =1'b1;
+				valid_write      =1'b0;
+				single_valid_data =single_valid_data_register_out;
+				core_out         =core_out_register_out;
+				core_wait        =1'b1;
 				D_write          =1'b0;
 				D_in             =32'd0;
 				D_type           =D_type_register_out;
@@ -271,10 +290,7 @@ always_comb
 				TA_in            =TA_in_register_out;
 				offset           =offset_register_out;
 				
-				
-				
-								
-			end
+			end				
 			STATE_READ_MEM2:
 			begin
 				if(D_wait)
@@ -292,7 +308,7 @@ always_comb
 				core_out         =(offset==4'd4)?D_out:core_out_register_out;
 				core_wait        =1'b1;
 				
-				D_req            =1'b1;
+				D_req            =1'b0;
 				D_write          =1'b0;
 				D_in             =32'd0;
 				D_type           =D_type_register_out;
@@ -306,6 +322,27 @@ always_comb
 				TA_in            =TA_in_register_out;
 				offset           =offset_register_out;
 			end
+			STATE_SEND_READ_MEM3:
+			begin
+				ns               =STATE_READ_MEM3;
+				D_addr           =D_addr_register_out;
+				D_req            =1'b1;
+				valid_write      =1'b0;
+				single_valid_data =single_valid_data_register_out;
+				core_out         =core_out_register_out;
+				core_wait        =1'b1;
+				D_write          =1'b0;
+				D_in             =32'd0;
+				D_type           =D_type_register_out;
+				index            =index_register_out;
+				DA_write         =16'hffff;
+				DA_read          =1'b0;
+				DA_in            ={96'd0,D_out};
+				TA_write         =1'b0;
+				TA_read          =1'b0;
+				TA_in            =TA_in_register_out;
+				offset           =offset_register_out;
+			end		
 			STATE_READ_MEM3:
 			begin
 				if(D_wait)
@@ -322,7 +359,7 @@ always_comb
 				single_valid_data =single_valid_data_register_out;
 				core_out         =(offset==4'd8)?D_out:core_out_register_out;
 				core_wait        =1'b1;
-				D_req            =1'b1;
+				D_req            =1'b0;
 				D_write          =1'b0;
 				D_in             =32'd0;
 				D_type           =D_type_register_out;
@@ -337,6 +374,27 @@ always_comb
 
 				offset           =offset_register_out;				
 			end
+			STATE_SEND_READ_MEM4:
+			begin
+				ns               =STATE_READ_MEM4;
+				D_addr           =D_addr_register_out;
+				D_req            =1'b1;
+				valid_write      =1'b0;
+				single_valid_data=single_valid_data_register_out;
+				core_out         =core_out_register_out;
+				core_wait        =1'b1;
+				D_write          =1'b0;
+				D_in             =32'd0;
+				D_type           =D_type_register_out;
+				index            =index_register_out;
+				DA_write         =16'hffff;
+				DA_read          =1'b0;
+				DA_in            ={96'd0,D_out};
+				TA_write         =1'b0;
+				TA_read          =1'b0;
+				TA_in            =TA_in_register_out;
+				offset           =offset_register_out;
+			end		
 			STATE_READ_MEM4:
 			begin
 				if(D_wait)
@@ -354,7 +412,7 @@ always_comb
 				core_out         =(offset==4'd12)?D_out:core_out_register_out;
 				core_wait        =1'b1;
 				D_write          =1'b0;
-				D_req            =1'b1;
+				D_req            =1'b0;
 				D_in             =32'd0;
 				D_type           =D_type_register_out;
 				
@@ -428,16 +486,18 @@ always_comb
 				if(single_valid_data&&(TA_out==TA_in))
 				begin
 					ns=STATE_WRITE_HIT;
+					D_req             =1'b1;
 				end
 				else
 				begin
 					ns=STATE_WRITE_MISS;
+					D_req             =1'b0;
 				end
 				valid_write       =1'b0;
 				single_valid_data =valid_data_from_register;
 				core_out          =32'd0;
 				core_wait         =1'b1;
-				D_req             =1'b0;
+				
 				D_write           =1'b0;
 				D_addr            =core_addr;
 				D_in              =core_in;
@@ -464,15 +524,14 @@ always_comb
 			if(D_wait)
 				begin
 					ns           =STATE_WRITE_MISS;
-					D_req        =1'b1;
 					D_write      =1'b1;
 				end
 				else
 				begin
 					ns=STATE_IDLE;
-					D_req       =1'b0;
 					D_write     =1'b0;
 				end
+				D_req             =1'b0;
 				core_wait         =1'b1;
 				core_out          =32'd0;
 				valid_write       =1'b0;

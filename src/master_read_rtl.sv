@@ -8,7 +8,6 @@ module master_read #(
 	clk,
 	rst,
 	cpu_read_signal,
-	im_read_pause,
 	address,
 	
 	read_data,
@@ -38,11 +37,13 @@ module master_read #(
 
 );
 	//system
+	localparam STATE_IDLE        =2'b00;
+	localparam STATE_SEND_ADDRESS=2'b01;
+	localparam STATE_GET_DATA    =2'b10;
 	input                             clk;
 	input                             rst;	
 	input                             cpu_read_signal;
     input        [              31:0] address; 	
-	input                             im_read_pause;
 
 	
 	
@@ -75,8 +76,8 @@ module master_read #(
 	output logic [              31:0] read_data;      
 	output logic                      read_pause_cpu;
 	
-	logic        [               2:0] cs;
-	logic        [               2:0] ns;
+	logic        [               1:0] cs;
+	logic        [               1:0] ns;
 	logic        [              31:0] read_data_register_out;
 	logic        [              31:0] ARADDR_M_register_out;
 	logic                             ARREADY_M_register_out;
@@ -85,7 +86,7 @@ module master_read #(
 	begin
 		if(!rst)
 		begin
-			cs<=3'b000;
+			cs<=STATE_IDLE;
 		end
 		else
 		begin
@@ -112,17 +113,17 @@ module master_read #(
 	always_comb
 	begin
 		case(cs)
-			3'b000:
+			STATE_IDLE:
 			begin
 				if(cpu_read_signal)
 				begin
-					ns             =3'b001;
+					ns             =STATE_SEND_ADDRESS;
 					read_pause_cpu =1'b1;
 					ARADDR_M       =address;
 				end
 				else
 				begin
-					ns             =3'b000;
+					ns             =STATE_IDLE;
 					read_pause_cpu =1'b0;
 					ARADDR_M       =32'd0;
 				end
@@ -131,17 +132,18 @@ module master_read #(
 				//ARADDR_M =32'd0;
 				ARVALID_M          =1'b0;
 				RREADY_M           =1'b0;
-				read_data          =32'd0;
+				read_data          =read_data_register_out;
 			end
-			3'b001:
+
+			STATE_SEND_ADDRESS:
 			begin
 				if(ARREADY_M_register_out==1'b1)
 				begin
-					ns=3'b010;
+					ns=STATE_GET_DATA;
 				end
 				else
 				begin
-					ns=3'b001;
+					ns=STATE_SEND_ADDRESS;
 					
 				end
 				ARVALID_M      =1'b1;
@@ -151,10 +153,9 @@ module master_read #(
 				read_pause_cpu =1'b1;
 				read_data      =32'd0;
 			end
-			
-			3'b010:
+			STATE_GET_DATA:
 			begin
-				ns             =RVALID_M?3'b100:3'b010;
+				ns             =RVALID_M?STATE_IDLE:STATE_GET_DATA;
 				RREADY_M       =1'b1;
 				ARID_M         =slaveid;
 				ARADDR_M       =ARADDR_M_register_out;
@@ -163,37 +164,6 @@ module master_read #(
 				read_pause_cpu =1'b1;
 				read_data      =(RRESP_M==2'b00 && RVALID_M==1'b1)?RDATA_M:32'd0;
 			end
-			/*
-			3'b011:
-			begin
-				if (RLAST_M==1'b1)
-				begin
-					ns=3'b100;
-				end
-				else
-				begin
-					ns=3'b011;
-				end
-				ARID_M   =slaveid;
-				ARADDR_M =ARADDR_M_register_out;
-				ARVALID_M=1'b0;
-				RREADY_M =1'b1;
-				read_data= (RRESP_M==2'b00 && RVALID_M==1'b1)?RDATA_M:32'd0;
-				read_pause_cpu=1'b1;
-			end
-			*/
-			//modify state
-			3'b100:
-			begin
-				ARID_M         =slaveid;
-				ARADDR_M       =ARADDR_M_register_out;
-				ARVALID_M      =1'b0;
-				RREADY_M       =1'b0;
-				read_data      =read_data_register_out;
-				read_pause_cpu =1'b0;
-				ns             =(im_read_pause==1'b1)?3'b100:3'b000;				
-			end
-			
 			default:
 			begin
 				ARID_M         =default_slaveid;
@@ -202,7 +172,7 @@ module master_read #(
 				RREADY_M       =1'b0;
 				read_pause_cpu =1'b0;
 				read_data      =32'd0;
-				ns             =3'b000;
+				ns             =STATE_IDLE;
 			end
 		endcase
 	end

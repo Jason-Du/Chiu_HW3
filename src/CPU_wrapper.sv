@@ -259,7 +259,6 @@ module CPU_wrapper(
 	.rst(rst),
 	.cpu_read_signal(im_mem_read_signal),
 	.address(im_I_addr),
-	.im_read_pause(1'b0),
 	.read_data(im_I_read_data),
 	.read_pause_cpu(im_read_pause),
 	
@@ -352,7 +351,6 @@ master_write #(4'b0001,4'b0001,4'b0010)dmwrite (
 	.rst(rst),
 	.cpu_write_signal(dm_mem_write_signal),
 	.cpu_write_data(dm_D_write_data),
-	.im_read_pause(im_read_pause),
 	.address(dm_D_addr),
 	//.web(dm_web),
 	.D_type(dm_D_type),
@@ -388,7 +386,6 @@ master_write #(4'b0001,4'b0001,4'b0010)dmwrite (
 		.rst(rst),
 		.cpu_read_signal(dm_mem_read_signal),
 		.address(dm_D_addr),
-		.im_read_pause(im_read_pause),
 		.read_data(dm_D_read_data),
 		.read_pause_cpu(dm_read_pause),
 
