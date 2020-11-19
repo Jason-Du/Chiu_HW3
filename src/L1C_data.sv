@@ -398,7 +398,7 @@ always_comb
 				TA_in            =TA_in_register_out;
 				offset           =offset_register_out;
 			end
-
+/*
 			STATE_WAIT:
 			begin
 				ns               =STATE_IDLE;
@@ -422,6 +422,7 @@ always_comb
 				offset           =offset_register_out;
 					
 			end
+*/
 			STATE_CHECK_HIT_WRITE:
 			begin
 				if(single_valid_data&&(TA_out==TA_in))
@@ -473,6 +474,7 @@ always_comb
 					D_write     =1'b0;
 				end
 				core_wait         =1'b1;
+				core_out          =32'd0;
 				valid_write       =1'b0;
 				single_valid_data =1'b0;	
 				D_type            =core_type;
@@ -649,6 +651,7 @@ always_comb
 					D_write     =1'b0;
 				end
 				core_wait         =1'b1;
+				core_out          =32'd0;
 				valid_write       =1'b0;
 				single_valid_data =1'b0;	
 				D_type            =core_type;
