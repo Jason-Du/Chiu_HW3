@@ -32,7 +32,17 @@ module L1C_data(
   output logic [       `DATA_BITS-1:0] D_in,//TO WRAPPER
   output logic [ `CACHE_TYPE_BITS-1:0] D_type//TO WRAPPER
 );
-
+  localparam STATE_IDLE             =4'b0000;
+  localparam STATE_CHECK_HIT_READ   =4'b0001;
+  localparam STATE_READ_MEM1        =4'b0010;
+  localparam STATE_READ_MEM2        =4'b0011;
+  localparam STATE_READ_MEM3        =4'b0100;
+  localparam STATE_READ_MEM4        =4'b0101;
+  localparam STATE_WRITE_CACHE      =4'b0110;
+  localparam STATE_WAIT             =4'b0111;
+  localparam STATE_CHECK_HIT_WRITE  =4'b1000;
+  localparam STATE_WRITE_MISS       =4'b1001;  
+  localparam STATE_WRITE_HIT        =4'b1010;
   logic        [`CACHE_INDEX_BITS-1:0] index;//6//address
   logic        [ `CACHE_DATA_BITS-1:0] DA_out;//128//output
   logic        [ `CACHE_DATA_BITS-1:0] DA_in;//128
@@ -65,17 +75,7 @@ module L1C_data(
 
   //logic        [               2:0] read_mem_count;
   //logic        [               2:0] read_mem_count_register_out;  
-  localparam STATE_IDLE             =4'b0000;
-  localparam STATE_CHECK_HIT_READ   =4'b0001;
-  localparam STATE_READ_MEM1        =4'b0010;
-  localparam STATE_READ_MEM2        =4'b0011;
-  localparam STATE_READ_MEM3        =4'b0100;
-  localparam STATE_READ_MEM4        =4'b0101;
-  localparam STATE_WRITE_CACHE      =4'b0110;
-  localparam STATE_WAIT             =4'b0111;
-  localparam STATE_CHECK_HIT_WRITE  =4'b1000;
-  localparam STATE_WRITE_MISS       =4'b1001;  
-  localparam STATE_WRITE_HIT        =4'b1010;
+
   always_ff@(posedge clk or posedge rst)
   begin
 	if(rst)
@@ -122,11 +122,11 @@ always_comb
 		case(cs)
 			STATE_IDLE:
 			begin
-				if(core_req&&core_write==1'b0)
+				if(core_req&&(!core_write))
 				begin
 					ns               =STATE_CHECK_HIT_READ;
 					valid_read       =1'b1;
-					single_vaild_data=valid_from_register;
+					single_vaild_data=valid_data_from_register;
 					core_wait        =1'b1;
 					
 					D_addr           =core_addr;
@@ -137,14 +137,12 @@ always_comb
 					TA_read          =1'b1;
 					TA_in            =core_addr[31:10];
 					offset           =core_addr[3:0];
-					
-
-					
-				else if(core_req&&core_write==1'b1)
+				end
+				else if(core_req&&core_write)
 				begin
 					ns               =STATE_CHECK_HIT_WRITE;
 					valid_read       =1'b1;
-					single_vaild_data=valid_from_register;
+					single_vaild_data=valid_data_from_register;
 					core_wait        =1'b1;
 					
 					D_addr           =core_addr;
@@ -172,12 +170,6 @@ always_comb
 					TA_read          =1'b0;
 					TA_in            =22'd0;
 					offset           =offset_register_out;
-					
-					
-					
-					
-					
-					
 					
 				end
 				valid_write=1'b0;
@@ -238,7 +230,6 @@ always_comb
 				D_addr           ={D_addr_register_out[31:2],2'b00};
 				D_in             =32'd0;
 				D_type           =D_type_register_out;
-				
 				index            =index_register_out;
 				DA_write         =16'hffff;
 				DA_read          =1'b1;
@@ -452,7 +443,7 @@ always_comb
 					ns=STATE_WRITE_MISS;
 				end
 				valid_read        =1'b1;
-				valid_write       =1'b0
+				valid_write       =1'b0;
 				single_valid_data =valid_data_from_register;
 				core_out          =32'd0;
 				core_wait         =1'b1;
