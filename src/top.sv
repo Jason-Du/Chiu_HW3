@@ -1,418 +1,751 @@
+//================================================
+// Auther:      Chen Yun-Ru (May)
+// Filename:    L1C_data.sv
+// Description: L1 Cache for data
+// Version:     0.1
+//================================================
+`include "../include/def.svh"
+`include "valid_register_rtl.sv"
+`include "data_array_wrapper.sv"
+`include "tag_array_wrapper.sv"
 `timescale 1ns/10ps
-`include "../include/AXI_define.svh"
-`include "SRAM_wrapper_im.sv"
-`include "SRAM_wrapper_dm.sv"
-`include "CPU_wrapper.sv"
-`include "AXI.sv"
-//`include "SRAM_wrapper.sv"
+module top(
+  input                               clk,
+  input                               rst,
 
-module top(clk,rst);
-	input clk;
-	input rst;
-	//SLAVE INTERFACE FOR MASTERS
-	//WRITE ADDRESS
-	logic [`AXI_ID_BITS-1:0] AWID_M1;
-	logic [`AXI_ADDR_BITS-1:0] AWADDR_M1;
-	logic [`AXI_LEN_BITS-1:0] AWLEN_M1;
-	logic [`AXI_SIZE_BITS-1:0] AWSIZE_M1;
-	logic [1:0] AWBURST_M1;
-	logic AWVALID_M1;
-	logic AWREADY_M1;
-	//WRITE DATA
-	logic [`AXI_DATA_BITS-1:0] WDATA_M1;
-	logic [`AXI_STRB_BITS-1:0] WSTRB_M1;
-	logic WLAST_M1;
-	logic WVALID_M1;
-	logic WREADY_M1;
-	//WRITE RESPONSE
-	logic [`AXI_ID_BITS-1:0] BID_M1;
-	logic [1:0] BRESP_M1;
-	logic BVALID_M1;
-	logic BREADY_M1;
+  // Core to CPU wrapper
+  input        [       `DATA_BITS-1:0] core_addr,//FROM CPU 
+  input                               core_req,//FROM CPU
+  input                               core_write,//FROM CPU
+  input        [       `DATA_BITS-1:0] core_in,//FROM CPU
+  input        [ `CACHE_TYPE_BITS-1:0] core_type,//FROM CPU
+  // Mem to CPU wrapper
+  input        [       `DATA_BITS-1:0] D_out,//FROM WRAPPER
+  input                                D_wait,//FROM WRAPPER
+  // CPU wrapper to core
+  output logic [       `DATA_BITS-1:0] core_out,//TO CPU
+  output logic                         core_wait,//TO CPU
+  // CPU wrapper to Mem
+  output logic                         D_req,//TO WRAPPER
+  output logic [       `DATA_BITS-1:0] D_addr,//TO WRAPPER
+  output logic                         D_write,//TO WRAPPER
+  output logic [       `DATA_BITS-1:0] D_in,//TO WRAPPER
+  output logic [ `CACHE_TYPE_BITS-1:0] D_type//TO WRAPPER
+);
 
-	//READ ADDRESS0
-	logic [`AXI_ID_BITS-1:0] ARID_M0;
-	logic [`AXI_ADDR_BITS-1:0] ARADDR_M0;
-	logic [`AXI_LEN_BITS-1:0] ARLEN_M0;
-	logic [`AXI_SIZE_BITS-1:0] ARSIZE_M0;
-	logic [1:0] ARBURST_M0;
-	logic ARVALID_M0;
-	logic ARREADY_M0;
-	//READ DATA0
-	logic [`AXI_ID_BITS-1:0] RID_M0;
-	logic [`AXI_DATA_BITS-1:0] RDATA_M0;
-	logic [1:0] RRESP_M0;
-	logic RLAST_M0;
-	logic RVALID_M0;
-	logic RREADY_M0;
-	//READ ADDRESS1
-	logic [`AXI_ID_BITS-1:0] ARID_M1;
-	logic [`AXI_ADDR_BITS-1:0] ARADDR_M1;
-	logic [`AXI_LEN_BITS-1:0] ARLEN_M1;
-	logic [`AXI_SIZE_BITS-1:0] ARSIZE_M1;
-	logic [1:0] ARBURST_M1;
-	logic ARVALID_M1;
-	logic ARREADY_M1;
-	//READ DATA1
-	logic [`AXI_ID_BITS-1:0] RID_M1;
-	logic [`AXI_DATA_BITS-1:0] RDATA_M1;
-	logic [1:0] RRESP_M1;
-	logic RLAST_M1;
-	logic RVALID_M1;
-	logic RREADY_M1;
+  logic        [`CACHE_INDEX_BITS-1:0] index;//6//address
+  logic        [ `CACHE_DATA_BITS-1:0] DA_out;//128//output
+  logic        [ `CACHE_DATA_BITS-1:0] DA_in;//128
+  logic        [`CACHE_WRITE_BITS-1:0] DA_write;//16
+  logic                                DA_read;
+  logic        [  `CACHE_TAG_BITS-1:0] TA_out;//22
+  logic        [  `CACHE_TAG_BITS-1:0] TA_in;//22
+  logic                                TA_write;
+  logic                                TA_read;
+  //logic        [     `CACHE_LINES-1:0] valid;//64
 
-	//MASTER INTERFACE FOR SLAVES
-	//WRITE ADDRESS0
-	logic [`AXI_IDS_BITS-1:0] AWID_S0;
-	logic [`AXI_ADDR_BITS-1:0] AWADDR_S0;
-	logic [`AXI_LEN_BITS-1:0] AWLEN_S0;
-	logic [`AXI_SIZE_BITS-1:0] AWSIZE_S0;
-	logic [1:0] AWBURST_S0;
-	logic AWVALID_S0;
-	logic AWREADY_S0;
-	//WRITE DATA0
-	logic [`AXI_DATA_BITS-1:0] WDATA_S0;
-	logic [`AXI_STRB_BITS-1:0] WSTRB_S0;
-	logic WLAST_S0;
-	logic WVALID_S0;
-	logic WREADY_S0;
-	//WRITE RESPONSE0
-	logic [`AXI_IDS_BITS-1:0] BID_S0;
-	logic [1:0] BRESP_S0;
-	logic BVALID_S0;
-	logic BREADY_S0;
-	
-	//WRITE ADDRESS1
-	logic [`AXI_IDS_BITS-1:0] AWID_S1;
-	logic [`AXI_ADDR_BITS-1:0] AWADDR_S1;
-	logic [`AXI_LEN_BITS-1:0] AWLEN_S1;
-	logic [`AXI_SIZE_BITS-1:0] AWSIZE_S1;
-	logic [1:0] AWBURST_S1;
-	logic AWVALID_S1;
-	logic AWREADY_S1;
-	//WRITE DATA1
-	logic [`AXI_DATA_BITS-1:0] WDATA_S1;
-	logic [`AXI_STRB_BITS-1:0] WSTRB_S1;
-	logic WLAST_S1;
-	logic WVALID_S1;
-	logic WREADY_S1;
-	//WRITE RESPONSE1
-	logic [`AXI_IDS_BITS-1:0] BID_S1;
-	logic [1:0] BRESP_S1;
-	logic BVALID_S1;
-	logic BREADY_S1;
-	
-	//READ ADDRESS0
-	logic [`AXI_IDS_BITS-1:0] ARID_S0;
-	logic [`AXI_ADDR_BITS-1:0] ARADDR_S0;
-	logic [`AXI_LEN_BITS-1:0] ARLEN_S0;
-	logic [`AXI_SIZE_BITS-1:0] ARSIZE_S0;
-	logic [1:0] ARBURST_S0;
-	logic ARVALID_S0;
-	logic ARREADY_S0;
-	//READ DATA0
-	logic [`AXI_IDS_BITS-1:0] RID_S0;
-	logic [`AXI_DATA_BITS-1:0] RDATA_S0;
-	logic [1:0] RRESP_S0;
-	logic RLAST_S0;
-	logic RVALID_S0;
-	logic RREADY_S0;
-	//READ ADDRESS1
-	logic [`AXI_IDS_BITS-1:0] ARID_S1;
-	logic [`AXI_ADDR_BITS-1:0] ARADDR_S1;
-	logic [`AXI_LEN_BITS-1:0] ARLEN_S1;
-	logic [`AXI_SIZE_BITS-1:0] ARSIZE_S1;
-	logic [1:0] ARBURST_S1;
-	logic ARVALID_S1;
-	logic ARREADY_S1;
-	//READ DATA1
-	logic [`AXI_IDS_BITS-1:0] RID_S1;
-	logic [`AXI_DATA_BITS-1:0] RDATA_S1;
-	logic [1:0] RRESP_S1;
-	logic RLAST_S1;
-	logic RVALID_S1;
-	logic RREADY_S1;
-	
-	CPU_wrapper cpu(
-	.clk(clk),
-	.rst(~rst),
-	.AWID_M1(AWID_M1),
-	.AWADDR_M1(AWADDR_M1),
-	.AWLEN_M1(AWLEN_M1),
-	.AWSIZE_M1(AWSIZE_M1),
-	.AWBURST_M1(AWBURST_M1),
-	.AWVALID_M1(AWVALID_M1),
-	//WRITE DATA1
-	.WDATA_M1(WDATA_M1),
-	.WSTRB_M1(WSTRB_M1),
-	.WLAST_M1(WLAST_M1),
-	.WVALID_M1(WVALID_M1),
-	//WRITE RESPONSE1
-	.BREADY_M1(BREADY_M1),
-	//WRITE DATA1
+  //--------------- complete this part by yourself -----------------//
+  logic                                valid_data_from_register;
+  logic                                vaild_read_signal;
+  logic                                valid_write;
+  logic        [`CACHE_INDEX_BITS-1:0] index_register_out;
+  logic        [  `CACHE_TAG_BITS-1:0] TA_in_register_out;
+  logic        [                127:0] DA_in_register_out;
 
-	.WREADY_M1(WREADY_M1),
-	//WRITE ADDRESS1
-	.AWREADY_M1(AWREADY_M1),
-	//WRITE RESPONSE1
-	.BID_M1(BID_M1),
-	.BRESP_M1(BRESP_M1),
-	.BVALID_M1(BVALID_M1),
+  logic                                single_vaild_data;
+  logic                                single_vaild_data_register_out;
+  logic        [                  3:0] offset;
+  logic        [                  3:0] offset_register_out;
+  logic        [                  3:0] cs;
+  logic        [                  3:0] ns;
+  logic        [                 31:0] core_out_register_out;
+  logic        [                 31:0] D_in_register_out;
+  logic        [ `CACHE_TYPE_BITS-1:0] D_type_register_out;
+  logic        [                 31:0] D_addr_register_out;
 
-	//READ ADDRESS0
-	.ARID_M0(ARID_M0),
-	.ARADDR_M0(ARADDR_M0),
-	.ARLEN_M0(ARLEN_M0),
-	.ARSIZE_M0(ARSIZE_M0),
-	.ARBURST_M0(ARBURST_M0),
-	.ARVALID_M0(ARVALID_M0),
-	//READ ADDRESS1
-	.ARID_M1(ARID_M1),
-	.ARADDR_M1(ARADDR_M1),
-	.ARLEN_M1(ARLEN_M1),
-	.ARSIZE_M1(ARSIZE_M1),
-	.ARBURST_M1(ARBURST_M1),
-	.ARVALID_M1(ARVALID_M1),
-	//READ DATA1
-	.RREADY_M1(RREADY_M1),
-	//READ DATA0	
-	.RREADY_M0(RREADY_M0),
+  //logic        [               2:0] read_mem_count;
+  //logic        [               2:0] read_mem_count_register_out;  
+  localparam STATE_IDLE             =4'b0000;
+  localparam STATE_CHECK_HIT_READ   =4'b0001;
+  localparam STATE_READ_MEM1        =4'b0010;
+  localparam STATE_READ_MEM2        =4'b0011;
+  localparam STATE_READ_MEM3        =4'b0100;
+  localparam STATE_READ_MEM4        =4'b0101;
+  localparam STATE_WRITE_CACHE      =4'b0110;
+  localparam STATE_WAIT             =4'b0111;
+  localparam STATE_CHECK_HIT_WRITE  =4'b1000;
+  localparam STATE_WRITE_MISS       =4'b1001;  
+  localparam STATE_WRITE_HIT        =4'b1010;
+  always_ff@(posedge clk or posedge rst)
+  begin
+	if(rst)
+	begin
+		cs<=STATE_IDLE;
+	end
+	else
+	begin
+		cs<=ns;
+	end
+  end
+  always_ff@(posedge clk or posedge rst)
+  begin
+	if(rst)
+	begin
+		//valid_register_out<=64'd0;
+		index_register_out<=6'd0;
+		TA_in_register_out<=22'd0;
+		D_type_register_out<=3'b000;
+		D_addr_register_out<=32'd0;
+		single_vaild_data_register_out<=1'b0;
+		offset_register_out<=4'b0000;
+		DA_in_register_out<=128'd0;
+		core_out_register_out<=32'd0;
+		D_in_register_out<=32'd0;
+	end
+	else
+	begin
+		//valid_register_out<=vaild;
+		index_register_out<=index;
+		TA_in_register_out<=TA_in;
+		D_type_register_out<=D_type;
+		D_addr_register_out<=D_addr;
+		single_vaild_data_register_out<=single_vaild_data;
+		offset_register_out<=offset;
+		DA_in_register_out<=DA_in;
+		core_out_register_out<=core_out;
+		D_in_register_out<=D_in;
+	end
+  end
+  
+always_comb
+  begin
+		case(cs)
+			STATE_IDLE:
+			begin
+				if(core_req&&core_write==1'b0)
+				begin
+					ns               =STATE_CHECK_HIT_READ;
+					valid_read       =1'b1;
+					single_vaild_data=valid_from_register;
+					core_wait        =1'b1;
+					
+					D_addr           =core_addr;
+					D_write          =1'b0;
+					D_type           =core_type;
+					index            =core_addr[9:4];
+					DA_read          =1'b1;
+					TA_read          =1'b1;
+					TA_in            =core_addr[31:10];
+					offset           =core_addr[3:0];
+					
 
-	//READ ADDRESS0
-	.ARREADY_M0(ARREADY_M0),
-	//READ ADDRESS1
-	.ARREADY_M1(ARREADY_M1),
-	//READ DATA1
-	.RID_M1(RID_M1),
-	.RDATA_M1(RDATA_M1),
-	.RRESP_M1(RRESP_M1),
-	.RLAST_M1(RLAST_M1),
-	.RVALID_M1(RVALID_M1),
-	//READ DATA0
-	.RID_M0(RID_M0),
-	.RDATA_M0(RDATA_M0),
-	.RRESP_M0(RRESP_M0),
-	.RLAST_M0(RLAST_M0),
-	.RVALID_M0(RVALID_M0)
-				);
+					
+				else if(core_req&&core_write==1'b1)
+				begin
+					ns               =STATE_CHECK_HIT_WRITE;
+					valid_read       =1'b1;
+					single_vaild_data=valid_from_register;
+					core_wait        =1'b1;
+					
+					D_addr           =core_addr;
+					D_write          =1'b0;
+					D_type           =core_type;
+					
+					index            =core_addr[9:4];
+					DA_read          =1'b1;
+					TA_read          =1'b1;
+					TA_in            =core_addr[31:10];
+					offset           =core_addr[3:0];
+				end
+				else
+				begin
+					ns               =STATE_IDLE;
+					valid_read       =1'b0;
+					single_vaild_data=1'd0;
+					core_wait        =1'b0;
+					D_addr           =32'd0;
+					D_write          =1'b0;
+					D_type           =3'b000;
+					
+					index            =6'd0;
+					DA_read          =1'b0;
+					TA_read          =1'b0;
+					TA_in            =22'd0;
+					offset           =offset_register_out;
+					
+					
+					
+					
+					
+					
+					
+				end
+				valid_write=1'b0;
+				core_out=32'd0;
+				D_req   =1'b0;
+				D_in    =32'd0;
+				DA_write=16'hffff;
+				DA_in   =128'd0;
+				TA_write=1'b0;
 				
-	
-	AXI axi(
-	 .ACLK(clk),
-	 .ARESETn(~rst),
-
-	//SLAVE INTERFACE FOR MASTERS
-	//WRITE ADDRESS
-	 .AWID_M1(AWID_M1),
-	 .AWADDR_M1(AWADDR_M1),
-	 .AWLEN_M1(AWLEN_M1),
-	 .AWSIZE_M1(AWSIZE_M1),
-	 .AWBURST_M1(AWBURST_M1),
-	 .AWVALID_M1(AWVALID_M1),
-	 .AWREADY_M1(AWREADY_M1),
-	//WRITE DATA
-	 .WDATA_M1(WDATA_M1),
-	 .WSTRB_M1(WSTRB_M1),
-	 .WLAST_M1(WLAST_M1),
-	 .WVALID_M1(WVALID_M1),
-	 .WREADY_M1(WREADY_M1),
-	//WRITE RESPONSE
-	 .BID_M1(BID_M1),
-	 .BRESP_M1(BRESP_M1),
-	 .BVALID_M1(BVALID_M1),
-	 .BREADY_M1(BREADY_M1),
-
-	//READ ADDRESS0
-	 .ARID_M0(ARID_M0),
-	 .ARADDR_M0(ARADDR_M0),
-	 .ARLEN_M0(ARLEN_M0),
-	 .ARSIZE_M0(ARSIZE_M0),
-	 .ARBURST_M0(ARBURST_M0),
-	 .ARVALID_M0(ARVALID_M0),
-	 .ARREADY_M0(ARREADY_M0),
-	//READ DATA0
-	 .RID_M0(RID_M0),
-	 .RDATA_M0(RDATA_M0),
-	 .RRESP_M0(RRESP_M0),
-	 .RLAST_M0(RLAST_M0),
-	 .RVALID_M0(RVALID_M0),
-	 .RREADY_M0(RREADY_M0),
-	//READ ADDRESS1
-	 .ARID_M1(ARID_M1),
-	 .ARADDR_M1(ARADDR_M1),
-	 .ARLEN_M1(ARLEN_M1),
-	 .ARSIZE_M1(ARSIZE_M1),
-	 .ARBURST_M1(ARBURST_M1),
-	 .ARVALID_M1(ARVALID_M1),
-	 .ARREADY_M1(ARREADY_M1),
-	//READ DATA1
-	 .RID_M1(RID_M1),
-	 .RDATA_M1(RDATA_M1),
-	 .RRESP_M1(RRESP_M1),
-	 .RLAST_M1(RLAST_M1),
-	 .RVALID_M1(RVALID_M1),
-	 .RREADY_M1(RREADY_M1),
-
-	//MASTER INTERFACE FOR SLAVES
-	//WRITE ADDRESS0
-	 .AWID_S0(AWID_S0),
-	 .AWADDR_S0(AWADDR_S0),
-	 .AWLEN_S0(AWLEN_S0),
-	 .AWSIZE_S0(AWSIZE_S0),
-	 .AWBURST_S0(AWBURST_S0),
-	 .AWVALID_S0(AWVALID_S0),
-	 .AWREADY_S0(AWREADY_S0),
-	//WRITE DATA0
-	 .WDATA_S0(WDATA_S0),
-	 .WSTRB_S0(WSTRB_S0),
-	 .WLAST_S0(WLAST_S0),
-	 .WVALID_S0(WVALID_S0),
-	 .WREADY_S0(WREADY_S0),
-	//WRITE RESPONSE0
-	 .BID_S0(BID_S0),
-	 .BRESP_S0(BRESP_S0),
-	 .BVALID_S0(BVALID_S0),
-	 .BREADY_S0(BREADY_S0),
-	
-	//WRITE ADDRESS1
-	 .AWID_S1(AWID_S1),
-	 .AWADDR_S1(AWADDR_S1),
-	 .AWLEN_S1(AWLEN_S1),
-	 .AWSIZE_S1(AWSIZE_S1),
-	 .AWBURST_S1(AWBURST_S1),
-	 .AWVALID_S1(AWVALID_S1),
-	 .AWREADY_S1(AWREADY_S1),
-	//WRITE DATA1
-	 .WDATA_S1(WDATA_S1),
-	 .WSTRB_S1(WSTRB_S1),
-	 .WLAST_S1(WLAST_S1),
-	 .WVALID_S1(WVALID_S1),
-	 .WREADY_S1(WREADY_S1),
-	//WRITE RESPONSE1
-	 .BID_S1(BID_S1),
-	 .BRESP_S1(BRESP_S1),
-	 .BVALID_S1(BVALID_S1),
-	 .BREADY_S1(BREADY_S1),
-	
-	//READ ADDRESS0
-	 .ARID_S0(ARID_S0),
-	 .ARADDR_S0(ARADDR_S0),
-	 .ARLEN_S0(ARLEN_S0),
-	 .ARSIZE_S0(ARSIZE_S0),
-	 .ARBURST_S0(ARBURST_S0),
-	 .ARVALID_S0(ARVALID_S0),
-	 .ARREADY_S0(ARREADY_S0),
-	//READ DATA0
-	 .RID_S0(RID_S0),
-	 .RDATA_S0(RDATA_S0),
-	 .RRESP_S0(RRESP_S0),
-	 .RLAST_S0(RLAST_S0),
-	 .RVALID_S0(RVALID_S0),
-	 .RREADY_S0(RREADY_S0),
-	//READ ADDRESS1
-	 .ARID_S1(ARID_S1),
-	 .ARADDR_S1(ARADDR_S1),
-	 .ARLEN_S1(ARLEN_S1),
-	 .ARSIZE_S1(ARSIZE_S1),
-	 .ARBURST_S1(ARBURST_S1),
-	 .ARVALID_S1(ARVALID_S1),
-	 .ARREADY_S1(ARREADY_S1),
-	//READ DATA1
-	 .RID_S1(RID_S1),
-	 .RDATA_S1(RDATA_S1),
-	 .RRESP_S1(RRESP_S1),
-	 .RLAST_S1(RLAST_S1),
-	 .RVALID_S1(RVALID_S1),
-	 .RREADY_S1(RREADY_S1)
-	
-);	
+				
 
 
-SRAM_wrapper_im IM1(
-//-----0------
-  	.ACLK(clk),
-	.ARESETn(~rst),
+			end
+			STATE_CHECK_HIT_READ:
+			begin
+				if((TA_out==TA_in )&&(single_vaild_data))
+				begin
+					//ns           =STATE_WAIT;
+					ns             =STATE_IDLE;
+					D_req        =1'b0;
+					case(offset)
+						4'd0:
+						begin
+							core_out         =DA_out[31:0];
+						end
+						4'd4:
+						begin
+							core_out         =DA_out[63:32];
+						end
+						4'd8:
+						begin
+							
+							core_out         =DA_out[95:64];
+						end
+						4'd12:
+						begin
+							
+							core_out         =DA_out[127:96];
+						end
+						default:
+						begin
+							core_out         =32'd0;
+						end						
+					endcase
+				end
+				else
+				begin
+					ns           =STATE_READ_MEM1;
+					core_out     =32'd0;
+					D_req        =1'b1;
+				end
+				valid_write      =1'b0;
+				valid_read       =1'b0;
+				single_vaild_data=single_vaild_data_register_out;
+				core_wait        =1'b1;
+				D_write          =1'b0;
+				D_addr           ={D_addr_register_out[31:2],2'b00};
+				D_in             =32'd0;
+				D_type           =D_type_register_out;
+				
+				index            =index_register_out;
+				DA_write         =16'hffff;
+				DA_read          =1'b1;
+				DA_in            =128'd0;
+				TA_write         =1'b0;
+				TA_read          =1'b1;
+				TA_in            =TA_in_register_out;
+				
+				
+				offset           =offset_register_out;
+				
+				
+				
+				
+			end
+			STATE_READ_MEM1:
+			begin
+				if(D_wait)
+				begin
+					ns               =STATE_READ_MEM1;
+					D_addr           =D_addr_register_out;
+				end
+				else
+				begin
+					ns               =STATE_READ_MEM2;
+					D_addr           =D_addr_register_out+32'd4;
+				end
+				valid_read       =1'b0;
+				valid_write      =1'b0;
+				single_vaild_data=single_vaild_data_register_out;
+				core_out         =(offset==4'd0)?D_out:32'd0;
+				core_wait        =1'b1;
+				
+				D_req            =1'b1;
+				D_write          =1'b0;
+				D_in             =32'd0;
+				D_type           =D_type_register_out;
+				index            =index_register_out;
+				DA_write         =16'hffff;
+				DA_read          =1'b0;
+				DA_in            ={96'd0,D_out};
+				TA_write         =1'b0;
+				TA_read          =1'b0;
+				TA_in            =TA_in_register_out;
+				offset           =offset_register_out;
+				
+				
+				
+								
+			end
+			STATE_READ_MEM2:
+			begin
+				if(D_wait)
+				begin
+					ns               =STATE_READ_MEM2;
+					D_addr           =D_addr_register_out;
+				end
+				else
+				begin
+					ns               =STATE_READ_MEM3;
+					D_addr           =D_addr_register_out+32'd4;
+				end
+				valid_read       =1'b0;
+				valid_write      =1'b0;
+				single_vaild_data=single_vaild_data_register_out;
+				core_out         =(offset==4'd4)?D_out:core_out_register_out;
+				core_wait        =1'b1;
+				
+				D_req            =1'b1;
+				D_write          =1'b0;
+				D_in             =32'd0;
+				D_type           =D_type_register_out;
+				
+				index            =index_register_out;
+				DA_write         =16'hffff;
+				DA_read          =1'b0;
+				DA_in            ={64'd0,D_out,DA_in_register_out[31:0]};
+				TA_write         =1'b0;
+				TA_read          =1'b0;
+				TA_in            =TA_in_register_out;
+				offset           =offset_register_out;
+			end
+			STATE_READ_MEM3:
+			begin
+				if(D_wait)
+				begin
+					ns               =STATE_READ_MEM3;
+					D_addr           =D_addr_register_out;
+				end
+				else
+				begin
+					ns               =STATE_READ_MEM4;
+					D_addr           =D_addr_register_out+32'd4;
+				end
+				valid_read       =1'b0;
+				valid_write      =1'b0;
+				single_vaild_data=single_vaild_data_register_out;
+				core_out         =(offset==4'd8)?D_out:core_out_register_out;
+				core_wait        =1'b1;
+				D_req            =1'b1;
+				D_write          =1'b0;
+				D_in             =32'd0;
+				D_type           =D_type_register_out;
+				
+				index            =index_register_out;
+				DA_write         =16'hffff;
+				DA_read          =1'b0;
+				DA_in            ={32'd0,D_out,DA_in_register_out[63:0]};
+				TA_write         =1'b0;
+				TA_read          =1'b0;
+				TA_in            =TA_in_register_out;
 
-	//SLAVE INTERFACE FOR MASTERS
-	//WRITE ADDRESS
-	.AWID(AWID_S0),
-	.AWADDR(AWADDR_S0),
-	.AWLEN(AWLEN_S0),
-	.AWSIZE(AWSIZE_S0),
-	.AWBURST(AWBURST_S0),
-	.AWVALID(AWVALID_S0),
-	.AWREADY(AWREADY_S0),
-	//WRITE DATA
-	.WDATA(WDATA_S0),
-	.WSTRB(WSTRB_S0),
-	.WLAST(WLAST_S0),
-	.WVALID(WVALID_S0),
-	.WREADY(WREADY_S0),
-	//WRITE RESPONSE
-	.BID(BID_S0),
-	.BRESP(BRESP_S0),
-	.BVALID(BVALID_S0),
-	.BREADY(BREADY_S0),
+				offset           =offset_register_out;				
+			end
+			STATE_READ_MEM4:
+			begin
+				if(D_wait)
+				begin
+					ns               =STATE_READ_MEM4;
+					D_addr           =D_addr_register_out;
+				end
+				else
+				begin
+					ns               =STATE_WRITE_CACHE;
+					D_addr           =32'd0;
+				end
+				valid_read       =1'b0;
+				valid_write      =1'b0;
+				single_vaild_data=single_vaild_data_register_out;
+				core_out         =(offset==4'd12)?D_out:core_out_register_out;
+				core_wait        =1'b1;
+				D_write          =1'b0;
+				D_req            =1'b1;
+				D_in             =32'd0;
+				D_type           =D_type_register_out;
+				
+				index            =index_register_out;
+				DA_read          =1'b0;
+				DA_write=16'hffff;
+				DA_in            ={D_out,DA_in_register_out[95:0]};
+				TA_read          =1'b0;
+				TA_write         =1'b0;
+				TA_in            =TA_in_register_out;				
 
-	//READ ADDRESS
-	.ARID(ARID_S0),
-	.ARADDR(ARADDR_S0),
-	.ARLEN(ARLEN_S0),
-	.ARSIZE(ARSIZE_S0),
-	.ARBURST(ARBURST_S0),
-	.ARVALID(ARVALID_S0),
-	.ARREADY(ARREADY_S0),
-	//READ DATA
-	.RID(RID_S0),
-	.RDATA(RDATA_S0),
-	.RRESP(RRESP_S0),
-	.RLAST(RLAST_S0),
-	.RVALID(RVALID_S0),
-	.RREADY(RREADY_S0)
-);	
-	
-SRAM_wrapper_dm DM1(
-//-----1------
-  	.ACLK(clk),
-	.ARESETn(~rst),
+				
+				single_vaild_data=single_vaild_data_register_out;
+				offset           =offset_register_out;
+				
+				
 
-	//SLAVE INTERFACE FOR MASTERS
-	//WRITE ADDRESS
-	.AWID(AWID_S1),
-	.AWADDR(AWADDR_S1),
-	.AWLEN(AWLEN_S1),
-	.AWSIZE(AWSIZE_S1),
-	.AWBURST(AWBURST_S1),
-	.AWVALID(AWVALID_S1),
-	.AWREADY(AWREADY_S1),
-	//WRITE DATA
-	.WDATA(WDATA_S1),
-	.WSTRB(WSTRB_S1),
-	.WLAST(WLAST_S1),
-	.WVALID(WVALID_S1),
-	.WREADY(WREADY_S1),
-	//WRITE RESPONSE
-	.BID(BID_S1),
-	.BRESP(BRESP_S1),
-	.BVALID(BVALID_S1),
-	.BREADY(BREADY_S1),
+				valid_write=1'b0;		
+			end
+			STATE_WRITE_CACHE:
+			begin
+				//ns=STATE_WAIT;
+				ns=STATE_IDLE;
 
-	//READ ADDRESS
-	.ARID(ARID_S1),
-	.ARADDR(ARADDR_S1),
-	.ARLEN(ARLEN_S1),
-	.ARSIZE(ARSIZE_S1),
-	.ARBURST(ARBURST_S1),
-	.ARVALID(ARVALID_S1),
-	.ARREADY(ARREADY_S1),
-	//READ DATA
-	.RID(RID_S1),
-	.RDATA(RDATA_S1),
-	.RRESP(RRESP_S1),
-	.RLAST(RLAST_S1),
-	.RVALID(RVALID_S1),
-	.RREADY(RREADY_S1)
-);	
+				valid_read       =1'b0;
+				valid_write      =1'b1;
+				single_vaild_data=single_vaild_data_register_out;				
+				core_out         =core_out_register_out;
+				core_wait        =1'b1;
+				D_req            =1'b0;
+				D_write          =1'b0;
+				D_addr           =D_addr_register_out;
+				D_in             =32'd0;
+				D_type           =D_type_register_out;
+				
+				index            =index_register_out;
+				DA_read          =1'b0;
+				DA_write         =16'h0000;
+				DA_in            =DA_in_register_out;
+				TA_read          =1'b0;
+				TA_write         =1'b1;
+				TA_in            =TA_in_register_out;
+				offset           =offset_register_out;
+			end
 
+			STATE_WAIT:
+			begin
+				ns               =STATE_IDLE;
+				valid_read       =1'b0;
+				valid_write      =1'b0;	
+				single_vaild_data=single_vaild_data_register_out;
+				core_out         =core_out_register_out;
+				core_wait        =1'b1;
+				D_req            =1'b0;
+				D_write          =1'b0;
+				D_addr           =D_addr_register_out;
+				D_in             =32'd0;
+				D_type           =D_type_register_out;
+				
+				index            =index_register_out;
+				DA_write          =16'hffff;
+				DA_read          =1'b0;
+				DA_in            =128'd0;
+				TA_write         =1'b0;
+				TA_read          =1'b0;
+				TA_in            =TA_in_register_out;
+				offset           =offset_register_out;
+					
+			end
+			STATE_CHECK_HIT_WRITE:
+			begin
+				if(single_valid_data&&(TA_out==TA_in))
+				begin
+					ns=STATE_WRITE_HIT;
+				end
+				else
+				begin
+					ns=STATE_WRITE_MISS;
+				end
+				valid_read        =1'b1;
+				valid_write       =1'b0
+				single_valid_data =valid_data_from_register;
+				core_out          =32'd0;
+				core_wait         =1'b1;
+				D_req             =1'b0;
+				D_write           =1'b0;
+				D_addr            =core_addr;
+				D_in              =core_in;
+				D_type            =core_type;
+
+				index        =index_register_out;
+				
+				offset       =offset_register_out;
+				/*
+				index    =core_addr[  9:4];
+				TA_in    =core_addr[31:10];
+				offset   =core_addr[  3:0];
+				*/
+				TA_write          =1'b0;
+				TA_read           =1'b1;
+				TA_in             =TA_in_register_out;
+				DA_write          =16'hffff;
+				DA_read           =1'b1;
+				DA_in             =128'd0;
+				
+			end
+			STATE_WRITE_HIT:
+			begin
+			if(D_wait)
+				begin
+					ns           =STATE_WRITE_MISS;
+					D_req        =1'b1;
+					D_write      =1'b1;
+				end
+				else
+				begin
+					ns=STATE_IDLE;
+					D_req       =1'b0;
+					D_write     =1'b0;
+				end
+				core_wait         =1'b1;
+				valid_read        =1'b0;
+				valid_write       =1'b0;
+				single_valid_data =1'b0;	
+				D_type            =core_type;
+				D_addr            =core_addr;
+				D_in              =core_in;
+				index             =index_register_out;
+				DA_read           =1'b0;
+				TA_in             =TA_in_register_out;
+				TA_write          =1'b0;
+				TA_read           =1'b0;
+				offset            =offset_register_out;
+				case(offset)
+					4'd0:
+					begin
+						case(D_type)
+							`CACHE_BYTE:
+							begin
+								DA_write          =D_addr[0]?{12'hfff,4'b1101}:{12'hfff,4'b1110};
+								DA_in             =D_addr[0]?{96'd0,16'd0,D_in[7:0],8'd0}:{96'd0,24'd0,D_in[7:0]};
+							end
+							`CACHE_HWORD:
+							begin
+								DA_write          ={12'hfff,4'b1100};
+								DA_in             ={96'd0,16'd0,D_in[15:0]};
+							end
+							`CACHE_WORD:
+							begin
+								DA_write          ={12'hfff,4'b0000};
+								DA_in             ={96'd0,D_in};
+							end
+							`CACHE_BYTE_U:
+							begin
+								DA_write          =D_addr[0]?{12'hfff,4'b0111}:{12'hfff,4'b1011};
+								DA_in             =D_addr[0]?{96'd0,D_in[7:0],24'd0}:{96'd0,8'd0,D_in[7:0],16'd0};
+							end
+							`CACHE_HWORD_U:
+							begin
+								DA_write          ={12'hfff,4'b0011};
+								DA_in             ={96'd0,D_in[15:0],16'd0};
+							end
+							default
+							begin
+								DA_write          =16'hffff;
+								DA_in             =128'd0;
+							end
+						endcase
+						
+					end
+					4'd4:
+					begin
+						case(D_type)
+							`CACHE_BYTE:
+							begin
+								DA_write          =D_addr[0]?{8'hff,4'b1101,4'hf}:{8'hff,4'b1110,4'hf};
+								DA_in             =D_addr[0]?{64'd0,16'd0,D_in[7:0],8'd0,32'd0}:{64'd0,24'd0,D_in[7:0],32'd0};
+							end
+							`CACHE_HWORD:
+							begin
+								DA_write          ={8'hff,4'b1100,4'hf};
+								DA_in             ={64'd0,16'd0,D_in[15:0],32'd0};
+							end
+							`CACHE_WORD:
+							begin
+								DA_write          ={8'hff,4'b0000,4'hf};
+								DA_in             ={64'd0,D_in,32'd0};
+							end
+							`CACHE_BYTE_U:
+							begin
+								DA_write          =D_addr[0]?{8'hff,4'b0111,4'hf}:{8'hff,4'b1011,4'hf};
+								DA_in             =D_addr[0]?{64'd0,D_in[7:0],24'd0,32'd0}:{64'd0,8'd0,D_in[7:0],16'd0,32'd0};
+							end
+							`CACHE_HWORD_U:
+							begin
+								DA_write          ={8'hff,4'b0011,4'hf};
+								DA_in             ={64'd0,D_in[15:0],16'd0,32'd0};
+							end
+							default
+							begin
+								DA_write          =16'hffff;
+								DA_in             =128'd0;
+							end
+						endcase
+						
+					end
+					4'd8:
+					begin
+						case(D_type)
+							`CACHE_BYTE:
+							begin
+								DA_write          =D_addr[0]?{4'hf,4'b1101,8'hff}:{4'hf,4'b1110,8'hff};
+								DA_in             =D_addr[0]?{32'd0,16'd0,D_in[7:0],8'd0,64'd0}:{32'd0,24'd0,D_in[7:0],64'd0};
+							end
+							`CACHE_HWORD:
+							begin
+								DA_write          ={4'hf,4'b1100,8'hff};
+								DA_in             ={32'd0,16'd0,D_in[15:0],64'd0};
+							end
+							`CACHE_WORD:
+							begin
+								DA_write          ={4'hf,4'b0000,8'hff};
+								DA_in             ={32'd0,D_in,64'd0};
+							end
+							`CACHE_BYTE_U:
+							begin
+								DA_write          =D_addr[0]?{4'hf,4'b0111,8'hff}:{4'hf,4'b1011,8'hff};
+								DA_in             =D_addr[0]?{32'd0,D_in[7:0],24'd0,64'd0}:{32'd0,8'd0,D_in[7:0],16'd0,64'd0};
+							end
+							`CACHE_HWORD_U:
+							begin
+								DA_write          ={4'hf,4'b0011,8'hff};
+								DA_in             ={32'd0,D_in[15:0],16'd0,64'd0};
+							end
+							default
+							begin
+								DA_write          =16'hffff;
+								DA_in             =128'd0;
+							end
+						endcase
+					end
+					4'd12:
+					begin
+						case(D_type)
+							`CACHE_BYTE://000
+							begin
+								DA_write          =D_addr[0]?{4'b1101,12'hfff}:{4'b1110,12'hfff};
+								DA_in             =D_addr[0]?{16'd0,D_in[7:0],8'd0,96'd0}:{24'd0,D_in[7:0],96'd0};
+							end
+							`CACHE_HWORD:
+							begin
+								DA_write          ={4'b1100,12'hfff};
+								DA_in             ={16'd0,D_in[15:0],96'd0};
+							end
+							`CACHE_WORD:
+							begin
+								DA_write          ={4'b0000,12'hfff};
+								DA_in             ={D_in,96'd0};
+							end
+							`CACHE_BYTE_U:
+							begin
+								DA_write          =D_addr[0]?{4'b0111,12'hfff}:{4'b1011,12'hfff};
+								DA_in             =D_addr[0]?{D_in[7:0],24'd0,96'd0}:{8'd0,D_in[7:0],16'd0,96'd0};
+							end
+							`CACHE_HWORD_U:
+							begin
+								DA_write          ={4'b0011,12'hfff};
+								DA_in             ={D_in[15:0],16'd0,96'd0};
+							end
+							default
+							begin
+								DA_write          =16'hffff;
+								DA_in             =128'd0;
+							end
+						endcase
+					end
+					default:
+					begin
+						DA_write          =16'hffff;
+						DA_in             =128'd0;
+					end
+				endcase
+			end
+			STATE_WRITE_MISS:
+			begin
+			if(D_wait)
+				begin
+					ns           =STATE_WRITE_MISS;
+					D_req        =1'b1;
+					D_write      =1'b1;
+				end
+				else
+				begin
+					ns=STATE_IDLE;
+					D_req       =1'b0;
+					D_write     =1'b0;
+				end
+				core_wait         =1'b1;
+				valid_read        =1'b0;
+				valid_write       =1'b0;
+				single_valid_data =1'b0;	
+				D_type            =core_type;
+				D_addr            =core_addr;
+				D_in              =core_in;
+				index             =index_register_out;
+				DA_write          =16'hffff;
+				DA_read           =1'b0;
+				DA_in             =128'd0;
+				TA_in             =TA_in_register_out;
+				TA_write          =1'b0;
+				TA_read           =1'b0;
+				offset            =offset_register_out;
+			end
+			default:
+			begin
+				ns               =STATE_IDLE;
+				
+				valid_read       =1'b0;
+				valid_write      =1'b0;
+				single_vaild_data=1'b0;
+				core_out         =32'd0;
+				core_wait        =1'b0;
+				
+				D_req            =1'b0;
+				D_write          =1'b0;				
+				D_addr           =32'd0;
+				D_in             =32'd0;
+				D_type           =3'b000;
+				
+				index            =6'd0;
+				DA_write         =16'hffff;
+				DA_read          =1'b0;
+				DA_in            =128'd0;
+				TA_write         =1'b0;
+				TA_read          =1'b0;
+				TA_in            =22'd0;
+				offset           =4'd0;	
+			end
+			
+		endcase
+		
+		
+  end
+valid_register val_rigt(
+					.clk(clk),
+					.rst(rst),
+					.valid_addr(index),
+					.valid_write(valid_write),
+					.valid_read(vaild_read_signal),
+					
+					
+					.valid_data(valid_data_from_register)
+						);
+
+  
+  data_array_wrapper DA(
+    .A(index),
+    .DO(DA_out),
+    .DI(DA_in),
+    .CK(clk),
+    .WEB(DA_write),
+    .OE(DA_read),
+    .CS(1'b1)
+  );
+   
+  tag_array_wrapper  TA(
+    .A(index),
+    .DO(TA_out),
+    .DI(TA_in),
+    .CK(clk),
+    .WEB(TA_write),
+    .OE(TA_read),
+    .CS(1'b1)
+  );
 
 endmodule
+
