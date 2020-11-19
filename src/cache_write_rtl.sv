@@ -122,35 +122,6 @@ begin
 		D_in_register_out<=D_in;
 	end
 end
-/*
- core_wait;
-
-  // CPU wrapper to Mem
-D_req;
-D_addr;
-D_write;
-D_in;
-D_type;
-index; 
-TA_in;
-TA_write;
-TA_read;
-DA_in;
-DA_write;
-valid_read;
-cs;
-ns;
-  
-address_tag;
-address_index;
-address_offset;
-single_valid_data;
-address_tag_register_out;
-address_index_register_out;
-address_offset_register_out;
-single_valid_data_register_out;
-TA_in_register_out;
-  */
 always_comb
 begin
 	case(cs)

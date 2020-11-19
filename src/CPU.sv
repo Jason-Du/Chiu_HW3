@@ -422,7 +422,7 @@ begin:exe_mem
 		stage3_register_out<=stage3_register_in;
 	end
 end
-
+logic [31:0] dm_datain_wire;
 always_comb
 begin:mem_comb
 	//dm_oe=stage3_register_out[138];
@@ -432,6 +432,7 @@ begin:mem_comb
 	//dm_addr={16'h0001,2'b00,quotient[13:0]};
 	dm_addr=stage3_register_out[127:96];
 	//dm_web=(stage3_register_out[139])?web_data:4'b1111;
+	dm_datain=stage3_register_out[63:32];
 	stage4_register_in=(cpu_stall)?stage4_register_out:{
 					stage3_register_out[140],
 					stage3_register_out[132:128],
@@ -444,13 +445,15 @@ divider4 div4(
 			.reminder(reminder),
 			.quotient(quotient)
 			);
+
+
 low_byte_control_write_data lwd(
 									.src2(stage3_register_out[63:32]),
 									.memin_low_byte(stage3_register_out[137]),
 									.memin_half_word(stage3_register_out[143]),
 									.mem_address(stage3_register_out[127:96]),
 									
-									.write_data(dm_datain),
+									.write_data(dm_datain_wire),
 									.core_type(dm_core_type),
 									.web(web_data)
 									);

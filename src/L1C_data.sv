@@ -131,9 +131,7 @@ always_comb
 					single_valid_data=valid_data_from_register;
 					vaild_read_signal=1'b1;
 					core_wait        =1'b1;
-					
 					D_addr           =core_addr;
-					D_write          =1'b0;
 					D_type           =core_type;
 					index            =core_addr[9:4];
 					DA_read          =1'b1;
@@ -147,11 +145,8 @@ always_comb
 					single_valid_data =valid_data_from_register;
 					vaild_read_signal=1'b1;
 					core_wait        =1'b1;
-					
 					D_addr           =core_addr;
-					D_write          =1'b0;
 					D_type           =core_type;
-					
 					index            =core_addr[9:4];
 					DA_read          =1'b1;
 					TA_read          =1'b1;
@@ -165,9 +160,7 @@ always_comb
 					vaild_read_signal=1'b0;
 					core_wait        =1'b0;
 					D_addr           =32'd0;
-					D_write          =1'b0;
 					D_type           =3'b000;
-					
 					index            =6'd0;
 					DA_read          =1'b0;
 					TA_read          =1'b0;
@@ -176,8 +169,9 @@ always_comb
 					
 				end
 				valid_write=1'b0;
-				core_out=32'd0;
+				core_out=core_out_register_out;
 				D_req   =1'b0;
+				D_write =1'b0;
 				D_in    =32'd0;
 				DA_write=16'hffff;
 				DA_in   =128'd0;
@@ -226,7 +220,7 @@ always_comb
 				vaild_read_signal=1'b1;
 				core_wait        =1'b1;
 				D_write          =1'b0;
-				D_addr           ={D_addr_register_out[31:2],2'b00};
+				D_addr           ={D_addr_register_out[31:4],4'b0000};
 				D_in             =32'd0;
 				D_type           =D_type_register_out;
 				index            =index_register_out;
@@ -253,7 +247,7 @@ always_comb
 				end
 				else
 				begin
-					ns               =STATE_READ_MEM2;
+					ns               =STATE_SEND_READ_MEM2;
 					D_addr           =D_addr_register_out+32'd4;
 				end
 				valid_write      =1'b0;
@@ -290,7 +284,7 @@ always_comb
 				index            =index_register_out;
 				DA_write         =16'hffff;
 				DA_read          =1'b0;
-				DA_in            ={96'd0,D_out};
+				DA_in            =DA_in_register_out;
 				TA_write         =1'b0;
 				TA_read          =1'b0;
 				TA_in            =TA_in_register_out;
@@ -306,7 +300,7 @@ always_comb
 				end
 				else
 				begin
-					ns               =STATE_READ_MEM3;
+					ns               =STATE_SEND_READ_MEM3;
 					D_addr           =D_addr_register_out+32'd4;
 				end
 				valid_write      =1'b0;
@@ -345,7 +339,7 @@ always_comb
 				index            =index_register_out;
 				DA_write         =16'hffff;
 				DA_read          =1'b0;
-				DA_in            ={96'd0,D_out};
+				DA_in            =DA_in_register_out;
 				TA_write         =1'b0;
 				TA_read          =1'b0;
 				TA_in            =TA_in_register_out;
@@ -355,7 +349,7 @@ always_comb
 			begin
 				if(D_wait)
 				begin
-					ns               =STATE_READ_MEM3;
+					ns               =STATE_SEND_READ_MEM4;
 					D_addr           =D_addr_register_out;
 				end
 				else
@@ -399,7 +393,7 @@ always_comb
 				index            =index_register_out;
 				DA_write         =16'hffff;
 				DA_read          =1'b0;
-				DA_in            ={96'd0,D_out};
+				DA_in            =DA_in_register_out;
 				TA_write         =1'b0;
 				TA_read          =1'b0;
 				TA_in            =TA_in_register_out;

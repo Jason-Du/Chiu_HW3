@@ -191,7 +191,7 @@ always_comb
 					
 				end
 				valid_write=1'b0;
-				core_out=32'd0;
+				core_out=core_out_register_out;
 				I_req   =1'b0;
 				I_in    =32'd0;
 				DA_write=16'hffff;
@@ -245,7 +245,7 @@ always_comb
 				single_valid_data=single_valid_data_register_out;
 				core_wait        =1'b1;
 				I_write          =1'b0;
-				I_addr           ={I_addr_register_out[31:2],2'b00};
+				I_addr           ={I_addr_register_out[31:4],4'b0000};
 				I_in             =32'd0;
 				I_type           =I_type_register_out;
 				index            =index_register_out;
@@ -272,7 +272,7 @@ always_comb
 				end
 				else
 				begin
-					ns               =STATE_READ_MEM2;
+					ns               =STATE_SEND_READ_MEM2;
 					I_addr           =I_addr_register_out+32'd4;
 				end
 				valid_write      =1'b0;
@@ -311,7 +311,7 @@ always_comb
 				index            =index_register_out;
 				DA_write         =16'hffff;
 				DA_read          =1'b0;
-				DA_in            ={96'd0,I_out};
+				DA_in            =DA_in_register_out;
 				TA_write         =1'b0;
 				TA_read          =1'b0;
 				TA_in            =TA_in_register_out;
@@ -326,7 +326,7 @@ always_comb
 				end
 				else
 				begin
-					ns               =STATE_READ_MEM3;
+					ns               =STATE_SEND_READ_MEM3;
 					I_addr           =I_addr_register_out+32'd4;
 				end
 				valid_write      =1'b0;
@@ -365,7 +365,7 @@ always_comb
 				index            =index_register_out;
 				DA_write         =16'hffff;
 				DA_read          =1'b0;
-				DA_in            ={96'd0,I_out};
+				DA_in            =DA_in_register_out;
 				TA_write         =1'b0;
 				TA_read          =1'b0;
 				TA_in            =TA_in_register_out;
@@ -380,7 +380,7 @@ always_comb
 				end
 				else
 				begin
-					ns               =STATE_READ_MEM4;
+					ns               =STATE_SEND_READ_MEM4;
 					I_addr           =I_addr_register_out+32'd4;
 				end
 				valid_write      =1'b0;
@@ -419,7 +419,7 @@ always_comb
 				index            =index_register_out;
 				DA_write         =16'hffff;
 				DA_read          =1'b0;
-				DA_in            ={96'd0,I_out};
+				DA_in            =DA_in_register_out;
 				TA_write         =1'b0;
 				TA_read          =1'b0;
 				TA_in            =TA_in_register_out;
