@@ -156,6 +156,7 @@ always_comb
 					TA_in            =core_addr[31:10];
 					offset           =core_addr[3:0];
 				end
+/*
 				else if(core_req&&core_write)
 				begin
 					ns               =STATE_CHECK_HIT_WRITE;
@@ -173,6 +174,7 @@ always_comb
 					TA_in            =core_addr[31:10];
 					offset           =core_addr[3:0];
 				end
+*/
 				else
 				begin
 					ns               =STATE_IDLE;
@@ -488,6 +490,7 @@ always_comb
 				TA_in            =TA_in_register_out;
 				offset           =offset_register_out;
 			end
+/*
 			STATE_CHECK_HIT_WRITE:
 			begin
 				if(single_valid_data&&(TA_out==TA_in))
@@ -512,11 +515,13 @@ always_comb
 				index        =index_register_out;
 				
 				offset       =offset_register_out;
+*/
 				/*
 				index    =core_addr[  9:4];
 				TA_in    =core_addr[31:10];
 				offset   =core_addr[  3:0];
 				*/
+/*
 				TA_write          =1'b1;
 				TA_read           =1'b1;
 				TA_in             =TA_in_register_out;
@@ -735,6 +740,7 @@ always_comb
 				TA_read           =1'b0;
 				offset            =offset_register_out;
 			end
+*/
 			default:
 			begin
 				ns               =STATE_IDLE;
