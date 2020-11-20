@@ -148,7 +148,6 @@ always_comb
 					core_wait        =1'b1;
 					
 					I_addr           =core_addr;
-					I_write          =1'b0;
 					I_type           =core_type;
 					index            =core_addr[9:4];
 					DA_read          =1'b1;
@@ -165,7 +164,6 @@ always_comb
 					core_wait        =1'b1;
 					
 					I_addr           =core_addr;
-					I_write          =1'b0;
 					I_type           =core_type;
 					
 					index            =core_addr[9:4];
@@ -182,7 +180,6 @@ always_comb
 					single_valid_data=1'd0;
 					core_wait        =1'b0;
 					I_addr           =32'd0;
-					I_write          =1'b0;
 					I_type           =3'b000;
 					
 					index            =6'd0;
@@ -195,6 +192,7 @@ always_comb
 				valid_write=1'b0;
 				core_out=core_out_register_out;
 				I_req   =1'b0;
+				I_write          =1'b0;
 				I_in    =32'd0;
 				DA_write=16'hffff;
 				DA_in   =128'd0;

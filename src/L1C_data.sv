@@ -349,12 +349,12 @@ always_comb
 			begin
 				if(D_wait)
 				begin
-					ns               =STATE_SEND_READ_MEM4;
+					ns               =STATE_READ_MEM3;
 					D_addr           =D_addr_register_out;
 				end
 				else
 				begin
-					ns               =STATE_READ_MEM4;
+					ns               =STATE_SEND_READ_MEM4;
 					D_addr           =D_addr_register_out+32'd4;
 				end
 				valid_write      =1'b0;
@@ -506,10 +506,9 @@ always_comb
 					ns=STATE_IDLE;
 
 				end
-	
 				core_wait         =1'b1;
 				core_out          =32'd0;
-				valid_write       =1'b1;
+				valid_write       =1'b0;
 				vaild_read_signal =1'b0;
 				single_valid_data =1'b0;
 				D_req             =1'b0;
@@ -520,162 +519,155 @@ always_comb
 				index             =index_register_out;
 				DA_read           =1'b0;
 				TA_in             =TA_in_register_out;
-				TA_write          =1'b0;
+				TA_write          =1'b1;
 				TA_read           =1'b0;
 				offset            =offset_register_out;
-				case(offset)
-					4'd0:
-					begin
-						DA_in={96'd0,D_in};
-						case(D_type)
-							`CACHE_BYTE:
-							begin
-								DA_write          =D_addr[0]?{12'hfff,4'b1101}:{12'hfff,4'b1110};
-								//DA_in             =D_addr[0]?{96'd0,16'd0,D_in[7:0],8'd0}:{96'd0,24'd0,D_in[7:0]};
-							end
-							`CACHE_HWORD:
-							begin
-								DA_write          ={12'hfff,4'b1100};
-								//DA_in             ={96'd0,16'd0,D_in[15:0]};
-							end
-							`CACHE_WORD:
-							begin
-								DA_write          ={12'hfff,4'b0000};
-								//DA_in             ={96'd0,D_in};
-							end
-							`CACHE_BYTE_U:
-							begin
-								DA_write          =D_addr[0]?{12'hfff,4'b0111}:{12'hfff,4'b1011};
-								//DA_in             =D_addr[0]?{96'd0,D_in[7:0],24'd0}:{96'd0,8'd0,D_in[7:0],16'd0};
-							end
-							`CACHE_HWORD_U:
-							begin
-								DA_write          ={12'hfff,4'b0011};
-								//DA_in             ={96'd0,D_in[15:0],16'd0};
-							end
-							default
-							begin
-								DA_write          =16'hffff;
-								//DA_in             =128'd0;
-							end
-						endcase
-						
-					end
-					4'd4:
-					begin
-						DA_in={64'd0,D_in,32'd0};
-						case(D_type)
-							`CACHE_BYTE:
-							begin
-								DA_write          =D_addr[0]?{8'hff,4'b1101,4'hf}:{8'hff,4'b1110,4'hf};
-								//DA_in             =D_addr[0]?{64'd0,16'd0,D_in[7:0],8'd0,32'd0}:{64'd0,24'd0,D_in[7:0],32'd0};
-							end
-							`CACHE_HWORD:
-							begin
-								DA_write          ={8'hff,4'b1100,4'hf};
-								//DA_in             ={64'd0,16'd0,D_in[15:0],32'd0};
-							end
-							`CACHE_WORD:
-							begin
-								DA_write          ={8'hff,4'b0000,4'hf};
-								//DA_in             ={64'd0,D_in,32'd0};
-							end
-							`CACHE_BYTE_U:
-							begin
-								DA_write          =D_addr[0]?{8'hff,4'b0111,4'hf}:{8'hff,4'b1011,4'hf};
-								//DA_in             =D_addr[0]?{64'd0,D_in[7:0],24'd0,32'd0}:{64'd0,8'd0,D_in[7:0],16'd0,32'd0};
-							end
-							`CACHE_HWORD_U:
-							begin
-								DA_write          ={8'hff,4'b0011,4'hf};
-								//DA_in             ={64'd0,D_in[15:0],16'd0,32'd0};
-							end
-							default
-							begin
-								DA_write          =16'hffff;
-								//DA_in             =128'd0;
-							end
-						endcase
-						
-					end
-					4'd8:
-					begin
-						DA_in={32'd0,D_in,64'd0};
-						case(D_type)
-							`CACHE_BYTE:
-							begin
-								DA_write          =D_addr[0]?{4'hf,4'b1101,8'hff}:{4'hf,4'b1110,8'hff};
-								//DA_in             =D_addr[0]?{32'd0,16'd0,D_in[7:0],8'd0,64'd0}:{32'd0,24'd0,D_in[7:0],64'd0};
-							end
-							`CACHE_HWORD:
-							begin
-								DA_write          ={4'hf,4'b1100,8'hff};
-								//DA_in             ={32'd0,16'd0,D_in[15:0],64'd0};
-							end
-							`CACHE_WORD:
-							begin
-								DA_write          ={4'hf,4'b0000,8'hff};
-								//DA_in             ={32'd0,D_in,64'd0};
-							end
-							`CACHE_BYTE_U:
-							begin
-								DA_write          =D_addr[0]?{4'hf,4'b0111,8'hff}:{4'hf,4'b1011,8'hff};
-								//DA_in             =D_addr[0]?{32'd0,D_in[7:0],24'd0,64'd0}:{32'd0,8'd0,D_in[7:0],16'd0,64'd0};
-							end
-							`CACHE_HWORD_U:
-							begin
-								DA_write          ={4'hf,4'b0011,8'hff};
-								//DA_in             ={32'd0,D_in[15:0],16'd0,64'd0};
-							end
-							default
-							begin
-								DA_write          =16'hffff;
-								//DA_in             =128'd0;
-							end
-						endcase
-					end
-					4'd12:
-					begin
-						DA_in={D_in,96'd0};
-						case(D_type)
-							`CACHE_BYTE://000
-							begin
-								DA_write          =D_addr[0]?{4'b1101,12'hfff}:{4'b1110,12'hfff};
-								//DA_in             =D_addr[0]?{16'd0,D_in[7:0],8'd0,96'd0}:{24'd0,D_in[7:0],96'd0};
-							end
-							`CACHE_HWORD:
-							begin
-								DA_write          ={4'b1100,12'hfff};
-								//DA_in             ={16'd0,D_in[15:0],96'd0};
-							end
-							`CACHE_WORD:
-							begin
-								DA_write          ={4'b0000,12'hfff};
-								//DA_in             ={D_in,96'd0};
-							end
-							`CACHE_BYTE_U:
-							begin
-								DA_write          =D_addr[0]?{4'b0111,12'hfff}:{4'b1011,12'hfff};
-								//DA_in             =D_addr[0]?{D_in[7:0],24'd0,96'd0}:{8'd0,D_in[7:0],16'd0,96'd0};
-							end
-							`CACHE_HWORD_U:
-							begin
-								DA_write          ={4'b0011,12'hfff};
-								//DA_in             ={D_in[15:0],16'd0,96'd0};
-							end
-							default
-							begin
-								DA_write          =16'hffff;
-								//DA_in             =128'd0;
-							end
-						endcase
-					end
-					default:
-					begin
-						DA_write          =16'hffff;
-						DA_in             =128'd0;
-					end
-				endcase
+				if(0<=offset<4)
+				begin
+					DA_in={96'd0,D_in};
+					case(D_type)
+						`CACHE_BYTE:
+						begin
+							DA_write          =D_addr[0]?{12'hfff,4'b1101}:{12'hfff,4'b1110};
+							//DA_in             =D_addr[0]?{96'd0,16'd0,D_in[7:0],8'd0}:{96'd0,24'd0,D_in[7:0]};
+						end
+						`CACHE_HWORD:
+						begin
+							DA_write          ={12'hfff,4'b1100};
+							//DA_in             ={96'd0,16'd0,D_in[15:0]};
+						end
+						`CACHE_WORD:
+						begin
+							DA_write          ={12'hfff,4'b0000};
+							//DA_in             ={96'd0,D_in};
+						end
+						`CACHE_BYTE_U:
+						begin
+							DA_write          =D_addr[0]?{12'hfff,4'b0111}:{12'hfff,4'b1011};
+							//DA_in             =D_addr[0]?{96'd0,D_in[7:0],24'd0}:{96'd0,8'd0,D_in[7:0],16'd0};
+						end
+						`CACHE_HWORD_U:
+						begin
+							DA_write          ={12'hfff,4'b0011};
+							//DA_in             ={96'd0,D_in[15:0],16'd0};
+						end
+						default
+						begin
+							DA_write          =16'hffff;
+							//DA_in             =128'd0;
+						end
+					endcase
+					
+				end
+				else if(4<=offset<8)
+				begin
+					DA_in={64'd0,D_in,32'd0};
+					case(D_type)
+						`CACHE_BYTE:
+						begin
+							DA_write          =D_addr[0]?{8'hff,4'b1101,4'hf}:{8'hff,4'b1110,4'hf};
+							//DA_in             =D_addr[0]?{64'd0,16'd0,D_in[7:0],8'd0,32'd0}:{64'd0,24'd0,D_in[7:0],32'd0};
+						end
+						`CACHE_HWORD:
+						begin
+							DA_write          ={8'hff,4'b1100,4'hf};
+							//DA_in             ={64'd0,16'd0,D_in[15:0],32'd0};
+						end
+						`CACHE_WORD:
+						begin
+							DA_write          ={8'hff,4'b0000,4'hf};
+							//DA_in             ={64'd0,D_in,32'd0};
+						end
+						`CACHE_BYTE_U:
+						begin
+							DA_write          =D_addr[0]?{8'hff,4'b0111,4'hf}:{8'hff,4'b1011,4'hf};
+							//DA_in             =D_addr[0]?{64'd0,D_in[7:0],24'd0,32'd0}:{64'd0,8'd0,D_in[7:0],16'd0,32'd0};
+						end
+						`CACHE_HWORD_U:
+						begin
+							DA_write          ={8'hff,4'b0011,4'hf};
+							//DA_in             ={64'd0,D_in[15:0],16'd0,32'd0};
+						end
+						default
+						begin
+							DA_write          =16'hffff;
+							//DA_in             =128'd0;
+						end
+					endcase
+					
+				end
+				else if(8<=offset<12)
+				begin
+					DA_in={32'd0,D_in,64'd0};
+					case(D_type)
+						`CACHE_BYTE:
+						begin
+							DA_write          =D_addr[0]?{4'hf,4'b1101,8'hff}:{4'hf,4'b1110,8'hff};
+							//DA_in             =D_addr[0]?{32'd0,16'd0,D_in[7:0],8'd0,64'd0}:{32'd0,24'd0,D_in[7:0],64'd0};
+						end
+						`CACHE_HWORD:
+						begin
+							DA_write          ={4'hf,4'b1100,8'hff};
+							//DA_in             ={32'd0,16'd0,D_in[15:0],64'd0};
+						end
+						`CACHE_WORD:
+						begin
+							DA_write          ={4'hf,4'b0000,8'hff};
+							//DA_in             ={32'd0,D_in,64'd0};
+						end
+						`CACHE_BYTE_U:
+						begin
+							DA_write          =D_addr[0]?{4'hf,4'b0111,8'hff}:{4'hf,4'b1011,8'hff};
+							//DA_in             =D_addr[0]?{32'd0,D_in[7:0],24'd0,64'd0}:{32'd0,8'd0,D_in[7:0],16'd0,64'd0};
+						end
+						`CACHE_HWORD_U:
+						begin
+							DA_write          ={4'hf,4'b0011,8'hff};
+							//DA_in             ={32'd0,D_in[15:0],16'd0,64'd0};
+						end
+						default
+						begin
+							DA_write          =16'hffff;
+							//DA_in             =128'd0;
+						end
+					endcase
+				end
+				else
+				begin
+					DA_in={D_in,96'd0};
+					case(D_type)
+						`CACHE_BYTE://000
+						begin
+							DA_write          =D_addr[0]?{4'b1101,12'hfff}:{4'b1110,12'hfff};
+							//DA_in             =D_addr[0]?{16'd0,D_in[7:0],8'd0,96'd0}:{24'd0,D_in[7:0],96'd0};
+						end
+						`CACHE_HWORD:
+						begin
+							DA_write          ={4'b1100,12'hfff};
+							//DA_in             ={16'd0,D_in[15:0],96'd0};
+						end
+						`CACHE_WORD:
+						begin
+							DA_write          ={4'b0000,12'hfff};
+							//DA_in             ={D_in,96'd0};
+						end
+						`CACHE_BYTE_U:
+						begin
+							DA_write          =D_addr[0]?{4'b0111,12'hfff}:{4'b1011,12'hfff};
+							//DA_in             =D_addr[0]?{D_in[7:0],24'd0,96'd0}:{8'd0,D_in[7:0],16'd0,96'd0};
+						end
+						`CACHE_HWORD_U:
+						begin
+							DA_write          ={4'b0011,12'hfff};
+							//DA_in             ={D_in[15:0],16'd0,96'd0};
+						end
+						default
+						begin
+							DA_write          =16'hffff;
+							//DA_in             =128'd0;
+						end
+					endcase
+				end
 			end
 			STATE_WRITE_MISS:
 			begin
