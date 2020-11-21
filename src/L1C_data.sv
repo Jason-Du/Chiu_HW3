@@ -5,9 +5,11 @@
 // Version:     0.1
 //================================================
 `include "../include/def.svh"
+/*
 `include "valid_register_rtl.sv"
 `include "data_array_wrapper.sv"
 `include "tag_array_wrapper.sv"
+*/
 `timescale 1ns/10ps
 module L1C_data(
   input                               clk,
