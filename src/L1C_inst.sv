@@ -192,7 +192,7 @@ always_comb
 				valid_write=1'b0;
 				core_out=core_out_register_out;
 				I_req   =1'b0;
-				I_write          =1'b0;
+				I_write =1'b0;
 				I_in    =32'd0;
 				DA_write=16'hffff;
 				DA_in   =128'd0;
@@ -208,31 +208,24 @@ always_comb
 				begin
 					//ns           =STATE_WAIT;
 					ns             =STATE_IDLE;
-					I_req        =1'b0;
-					case(offset)
-						4'd0:
-						begin
-							core_out         =DA_out[31:0];
-						end
-						4'd4:
-						begin
-							core_out         =DA_out[63:32];
-						end
-						4'd8:
-						begin
-							
-							core_out         =DA_out[95:64];
-						end
-						4'd12:
-						begin
-							
-							core_out         =DA_out[127:96];
-						end
-						default:
-						begin
-							core_out         =32'd0;
-						end						
-					endcase
+					I_req          =1'b0;
+					if(4'd0<=offset&&offset<4'd4)
+					begin
+						core_out         =DA_out[31:0];
+					end
+					
+					else if(4'd4<=offset&&offset<4'd8)
+					begin
+						core_out         =DA_out[63:32];
+					end
+					else if(4'd8<=offset&&offset<4'd12)
+					begin
+						core_out         =DA_out[95:64];
+					end
+					else
+					begin
+						core_out         =DA_out[127:96];
+					end		
 				end
 				else
 				begin
@@ -255,8 +248,6 @@ always_comb
 				TA_write         =1'b1;
 				TA_read          =1'b1;
 				TA_in            =TA_in_register_out;
-				
-				
 				offset           =offset_register_out;
 				
 				
@@ -279,7 +270,7 @@ always_comb
 				vaild_read_signal=1'b0;
 				single_valid_data=single_valid_data_register_out;
 
-				core_out         =(offset==4'd0)?I_out:32'd0;
+				core_out         =(4'd0<=offset&&offset<4'd4)?I_out:32'd0;
 				core_wait        =1'b1;
 				
 				I_req            =1'b0;
@@ -332,7 +323,7 @@ always_comb
 				valid_write      =1'b0;
 				vaild_read_signal=1'b0;
 				single_valid_data =single_valid_data_register_out;
-				core_out         =(offset==4'd4)?I_out:core_out_register_out;
+				core_out         =(4'd4<=offset&&offset<4'd8)?I_out:core_out_register_out;
 				core_wait        =1'b1;
 				
 				I_req            =1'b0;
@@ -386,7 +377,7 @@ always_comb
 				valid_write      =1'b0;
 				vaild_read_signal=1'b0;
 				single_valid_data =single_valid_data_register_out;
-				core_out         =(offset==4'd8)?I_out:core_out_register_out;
+				core_out         =(4'd8<=offset&&offset<4'd12)?I_out:core_out_register_out;
 				core_wait        =1'b1;
 				I_req            =1'b0;
 				I_write          =1'b0;
@@ -440,7 +431,7 @@ always_comb
 				valid_write      =1'b0;
 				vaild_read_signal=1'b0;
 				single_valid_data=single_valid_data_register_out;
-				core_out         =(offset==4'd12)?I_out:core_out_register_out;
+				core_out         =(4'd12<=offset&&offset<=4'd15)?I_out:core_out_register_out;
 				core_wait        =1'b1;
 				I_write          =1'b0;
 				I_req            =1'b0;
@@ -488,6 +479,67 @@ always_comb
 				TA_in            =TA_in_register_out;
 				offset           =offset_register_out;
 			end
+
+			default:
+			begin
+				ns               =STATE_IDLE;
+				valid_write      =1'b0;
+				vaild_read_signal =1'b0;
+				single_valid_data=1'b0;
+				core_out         =32'd0;
+				core_wait        =1'b0;
+				
+				I_req            =1'b0;
+				I_write          =1'b0;				
+				I_addr           =32'd0;
+				I_in             =32'd0;
+				I_type           =3'b000;
+				
+				index            =6'd0;
+				DA_write         =16'hffff;
+				DA_read          =1'b0;
+				DA_in            =128'd0;
+				TA_write         =1'b1;
+				TA_read          =1'b0;
+				TA_in            =22'd0;
+				offset           =4'd0;	
+			end
+			
+		endcase
+  end
+valid_register val_rigt(
+					.clk(clk),
+					.rst(rst),
+					.valid_addr(index),
+					.valid_write(valid_write),
+					.valid_read(vaild_read_signal),
+					
+					
+					.valid_data(valid_data_from_register)
+						);
+
+  
+  data_array_wrapper DA(
+    .A(index),
+    .DO(DA_out),
+    .DI(DA_in),
+    .CK(clk),
+    .WEB(DA_write),
+    .OE(DA_read),
+    .CS(1'b1)
+  );
+   
+  tag_array_wrapper  TA(
+    .A(index),
+    .DO(TA_out),
+    .DI(TA_in),
+    .CK(clk),
+    .WEB(TA_write),
+    .OE(TA_read),
+    .CS(1'b1)
+  );
+
+endmodule
 /*
 			STATE_CHECK_HIT_WRITE:
 			begin
@@ -739,65 +791,3 @@ always_comb
 				offset            =offset_register_out;
 			end
 */
-			default:
-			begin
-				ns               =STATE_IDLE;
-				valid_write      =1'b0;
-				vaild_read_signal =1'b0;
-				single_valid_data=1'b0;
-				core_out         =32'd0;
-				core_wait        =1'b0;
-				
-				I_req            =1'b0;
-				I_write          =1'b0;				
-				I_addr           =32'd0;
-				I_in             =32'd0;
-				I_type           =3'b000;
-				
-				index            =6'd0;
-				DA_write         =16'hffff;
-				DA_read          =1'b0;
-				DA_in            =128'd0;
-				TA_write         =1'b1;
-				TA_read          =1'b0;
-				TA_in            =22'd0;
-				offset           =4'd0;	
-			end
-			
-		endcase
-  end
-valid_register val_rigt(
-					.clk(clk),
-					.rst(rst),
-					.valid_addr(index),
-					.valid_write(valid_write),
-					.valid_read(vaild_read_signal),
-					
-					
-					.valid_data(valid_data_from_register)
-						);
-
-  
-  data_array_wrapper DA(
-    .A(index),
-    .DO(DA_out),
-    .DI(DA_in),
-    .CK(clk),
-    .WEB(DA_write),
-    .OE(DA_read),
-    .CS(1'b1)
-  );
-   
-  tag_array_wrapper  TA(
-    .A(index),
-    .DO(TA_out),
-    .DI(TA_in),
-    .CK(clk),
-    .WEB(TA_write),
-    .OE(TA_read),
-    .CS(1'b1)
-  );
-
-
-endmodule
-

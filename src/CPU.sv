@@ -460,6 +460,7 @@ low_byte_control_write_data lwd(
 low_byte_control_read_data lrd(
 									.memout(dm_dataout),
 									//reminder,
+									.mem_address(stage3_register_out[127:96]),
 									.memout_low_byte(stage3_register_out[136]),
 									.memout_half_word(stage3_register_out[145]),
 									.padding_zero(stage3_register_out[144]),

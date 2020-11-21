@@ -183,31 +183,25 @@ always_comb
 				begin
 					//ns           =STATE_WAIT;
 					ns             =STATE_IDLE;
-					D_req        =1'b0;
-					case(offset)
-						4'd0:
-						begin
-							core_out         =DA_out[31:0];
-						end
-						4'd4:
-						begin
-							core_out         =DA_out[63:32];
-						end
-						4'd8:
-						begin
-							
-							core_out         =DA_out[95:64];
-						end
-						4'd12:
-						begin
-							
-							core_out         =DA_out[127:96];
-						end
-						default:
-						begin
-							core_out         =32'd0;
-						end						
-					endcase
+					D_req          =1'b0;
+					
+					if(4'd0<=offset&&offset<4'd4)
+					begin
+						core_out         =DA_out[31:0];
+					end
+					
+					else if(4'd4<=offset&&offset<4'd8)
+					begin
+						core_out         =DA_out[63:32];
+					end
+					else if(4'd8<=offset&&offset<4'd12)
+					begin
+						core_out         =DA_out[95:64];
+					end
+					else
+					begin
+						core_out         =DA_out[127:96];
+					end		
 				end
 				else
 				begin
@@ -230,13 +224,7 @@ always_comb
 				TA_write         =1'b1;
 				TA_read          =1'b1;
 				TA_in            =TA_in_register_out;
-				
-				
 				offset           =offset_register_out;
-				
-				
-				
-				
 			end
 			STATE_READ_MEM1:
 			begin
@@ -253,7 +241,7 @@ always_comb
 				valid_write      =1'b0;
 				single_valid_data =single_valid_data_register_out;
 				vaild_read_signal=1'b0;
-				core_out         =(offset==4'd0)?D_out:32'd0;
+				core_out         =(4'd0<=offset&&offset<4'd4)?D_out:32'd0;
 				core_wait        =1'b1;
 				D_req            =1'b0;
 				D_write          =1'b0;
@@ -306,7 +294,7 @@ always_comb
 				valid_write      =1'b0;
 				single_valid_data =single_valid_data_register_out;
 				vaild_read_signal=1'b0;
-				core_out         =(offset==4'd4)?D_out:core_out_register_out;
+				core_out         =(4'd4<=offset&&offset<4'd8)?D_out:core_out_register_out;
 				core_wait        =1'b1;
 				
 				D_req            =1'b0;
@@ -359,7 +347,7 @@ always_comb
 				end
 				valid_write      =1'b0;
 				single_valid_data =single_valid_data_register_out;
-				core_out         =(offset==4'd8)?D_out:core_out_register_out;
+				core_out         =(4'd8<=offset&&offset<4'd12)?D_out:core_out_register_out;
 				vaild_read_signal=1'b0;
 				core_wait        =1'b1;
 				D_req            =1'b0;
@@ -414,7 +402,7 @@ always_comb
 				valid_write      =1'b0;
 				single_valid_data=single_valid_data_register_out;
 				vaild_read_signal=1'b0;
-				core_out         =(offset==4'd12)?D_out:core_out_register_out;
+				core_out         =(4'd12<=offset&&offset<=4'd15)?D_out:core_out_register_out;
 				core_wait        =1'b1;
 				D_write          =1'b0;
 				D_req            =1'b0;
@@ -478,10 +466,8 @@ always_comb
 				D_addr            =core_addr;
 				D_in              =core_in;
 				D_type            =core_type;
-
-				index        =index_register_out;
-				
-				offset       =offset_register_out;
+				index             =index_register_out;
+				offset            =offset_register_out;
 				/*
 				index    =core_addr[  9:4];
 				TA_in    =core_addr[31:10];
@@ -491,7 +477,7 @@ always_comb
 				TA_read           =1'b1;
 				TA_in             =TA_in_register_out;
 				DA_write          =16'hffff;
-				DA_read           =1'b1;
+				DA_read           =1'b0;
 				DA_in             =128'd0;
 				
 			end
@@ -518,11 +504,11 @@ always_comb
 				D_in              =core_in;
 				index             =index_register_out;
 				DA_read           =1'b0;
-				TA_in             =TA_in_register_out;
+				TA_in             =22'd0;
 				TA_write          =1'b1;
 				TA_read           =1'b0;
 				offset            =offset_register_out;
-				if(0<=offset<4)
+				if(4'd0<=offset&&offset<4'd4)
 				begin
 					DA_in={96'd0,D_in};
 					case(D_type)
@@ -559,7 +545,7 @@ always_comb
 					endcase
 					
 				end
-				else if(4<=offset<8)
+				else if(4'd4<=offset&&offset<4'd8)
 				begin
 					DA_in={64'd0,D_in,32'd0};
 					case(D_type)
@@ -596,7 +582,7 @@ always_comb
 					endcase
 					
 				end
-				else if(8<=offset<12)
+				else if(4'd8<=offset&&offset<4'd12)
 				begin
 					DA_in={32'd0,D_in,64'd0};
 					case(D_type)
@@ -636,7 +622,7 @@ always_comb
 				begin
 					DA_in={D_in,96'd0};
 					case(D_type)
-						`CACHE_BYTE://000
+						`CACHE_BYTE:
 						begin
 							DA_write          =D_addr[0]?{4'b1101,12'hfff}:{4'b1110,12'hfff};
 							//DA_in             =D_addr[0]?{16'd0,D_in[7:0],8'd0,96'd0}:{24'd0,D_in[7:0],96'd0};
@@ -689,14 +675,14 @@ always_comb
 				D_type            =core_type;
 				D_addr            =core_addr;
 				D_in              =core_in;
-				index             =index_register_out;
+				index             =6'd0;
 				DA_write          =16'hffff;
 				DA_read           =1'b0;
 				DA_in             =128'd0;
-				TA_in             =TA_in_register_out;
+				TA_in             =22'd0;
 				TA_write          =1'b1;
 				TA_read           =1'b0;
-				offset            =offset_register_out;
+				offset            =4'd0;
 			end
 			default:
 			begin
