@@ -27,4 +27,5 @@ int main(void)
 	gray(&_binary_image_bmp_start,&_binary_image_bmp_end,&_test_start);
 	*/
 	return 0;
+	
 }
