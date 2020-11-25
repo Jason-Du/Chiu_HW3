@@ -10,7 +10,7 @@
 									
 									read_mem_data
 									);
- parameter DATA_SIZE  =32;
+localparam DATA_SIZE  =32;
  
  output logic [DATA_SIZE-1:0] read_mem_data;
  

@@ -6,7 +6,7 @@
 				
 				alu_addr_out
 				);
- parameter DATA_SIZE  =32;
+ localparam DATA_SIZE  =32;
  
  input        [DATA_SIZE-1:0] src1;
  input        [DATA_SIZE-1:0] imm_data;

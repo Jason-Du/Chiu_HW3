@@ -13,7 +13,7 @@
 						src2_data
 						 
 						);
-parameter DATA_SIZE  =32;
+localparam DATA_SIZE  =32;
 						
 input        [DATA_SIZE-1:0] rs1_data;
 input        [DATA_SIZE-1:0] rs2_data;

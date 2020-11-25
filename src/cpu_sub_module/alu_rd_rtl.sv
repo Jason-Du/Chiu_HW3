@@ -9,7 +9,7 @@ module alu_rd(
 				alu_rd_data
 				);
 				
-parameter DATA_SIZE  =32;
+localparam DATA_SIZE  =32;
 
 input        [DATA_SIZE-1:0] src1;
 input        [DATA_SIZE-1:0] src2;

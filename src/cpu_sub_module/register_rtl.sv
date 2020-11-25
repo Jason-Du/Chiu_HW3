@@ -14,8 +14,8 @@
 				rs2_data
 					);
 					
-parameter DATA_SIZE   =32;
-parameter STP_REGSIZE = 32;//Regoster number
+localparam DATA_SIZE   =32;
+localparam STP_REGSIZE = 32;//Regoster number
 
 input                       clk;
 input                       rst;

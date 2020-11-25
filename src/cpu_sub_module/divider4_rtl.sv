@@ -5,7 +5,7 @@ module divider4(
 				reminder,
 				quotient
 				);
-parameter DATA_SIZE  =32;
+localparam DATA_SIZE  =32;
 				
 input    [31:0]mem_addr;
 

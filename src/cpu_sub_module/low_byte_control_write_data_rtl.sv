@@ -10,7 +10,7 @@
 									web
 									);
  
- parameter DATA_SIZE  =32;
+localparam DATA_SIZE  =32;
  
  input        [DATA_SIZE-1:0] src2;
  input                        memin_low_byte;

@@ -8,7 +8,7 @@
 `define DEF_SVH
 
 // CPU
-`define DATA_BITS 32
+
 
 // Cache
 `define CACHE_BLOCK_BITS 2
@@ -23,7 +23,7 @@
 `define CACHE_WORD `CACHE_TYPE_BITS'b010
 `define CACHE_BYTE_U `CACHE_TYPE_BITS'b100
 `define CACHE_HWORD_U `CACHE_TYPE_BITS'b101
-
+`define DATA_BITS 32
 //Read Write data length
 `define WRITE_LEN_BITS 2
 `define BYTE `WRITE_LEN_BITS'b00

@@ -13,7 +13,7 @@ module alu_pc(
 				pc_jump_control
 				);
 				
-parameter DATA_SIZE  =32;
+localparam DATA_SIZE  =32;
 				
 input        [          2:0] alu_pc_control;
 input        [DATA_SIZE-1:0] imm_data;

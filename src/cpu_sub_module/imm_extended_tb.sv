@@ -6,7 +6,7 @@ module test_tb();
  
  
  
-parameter DATA_SIZE  =32;		
+localparam DATA_SIZE  =32;		
 
 
 logic        [         11:0] imm_i_data;
