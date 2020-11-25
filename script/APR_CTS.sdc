@@ -1,6 +1,6 @@
 create_clock -name clk -period 15 [get_ports {clk}]
-set_clock_uncertainty -setup 0.5 [get_clocks {CLK}]
-set_clock_uncertainty -hold 0.02 [get_clocks {CLK}]
+set_clock_uncertainty -setup 0.5 [get_clocks {clk}]
+set_clock_uncertainty -hold 0.02 [get_clocks {clk}]
 
 set_input_delay 3 -clock clk [remove_from_collection [all_inputs][get_ports {clk}]]
 set_output_delay 3 -clock clk [all_outputs]

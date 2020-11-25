@@ -1,1 +1,2 @@
 N260XXXXX
+wc -l src/* src/AXI/* include/*
