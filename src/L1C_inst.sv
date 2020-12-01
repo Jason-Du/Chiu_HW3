@@ -5,12 +5,11 @@
 // Version:     0.1
 //================================================
 `include "../include/def.svh"
-`include "cache_write_read_arbitor_rtl.sv"
-`include "cache_read_rtl.sv"
-`include "cache_write_rtl.sv"
 `include "valid_register_rtl.sv"
+/*
 `include "data_array_wrapper.sv"
 `include "tag_array_wrapper.sv"
+*/
 `timescale 1ns/10ps
 module L1C_inst(
   input                               clk,
@@ -507,7 +506,7 @@ always_comb
 			
 		endcase
   end
-valid_register val_rigt(
+valid_register val_rigt_im(
 					.clk(clk),
 					.rst(rst),
 					.valid_addr(index),

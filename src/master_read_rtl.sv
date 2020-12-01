@@ -1,10 +1,7 @@
 `timescale 1ns/10ps
 `include "../include/AXI_define.svh"
 
-module master_read #(
-	parameter slaveid        =4'b0001,
-	parameter masterid       =4'b0001,
-	parameter default_slaveid =4'b0010)(
+module master_read(
 	clk,
 	rst,
 	cpu_read_signal,
@@ -127,7 +124,7 @@ module master_read #(
 					read_pause_cpu =1'b0;
 					ARADDR_M       =32'd0;
 				end
-				ARID_M             =default_slaveid;
+				ARID_M             =4'b0010;
 				//mofify
 				//ARADDR_M =32'd0;
 				ARVALID_M          =1'b0;
@@ -147,7 +144,7 @@ module master_read #(
 					
 				end
 				ARVALID_M      =1'b1;
-				ARID_M         =slaveid;
+				ARID_M         =4'b0001;
 				ARADDR_M       =ARADDR_M_register_out;
 				RREADY_M       =1'b0;
 				read_pause_cpu =1'b1;
@@ -157,7 +154,7 @@ module master_read #(
 			begin
 				ns             =RVALID_M?STATE_IDLE:STATE_GET_DATA;
 				RREADY_M       =1'b1;
-				ARID_M         =slaveid;
+				ARID_M         =4'b0001;
 				ARADDR_M       =ARADDR_M_register_out;
 				ARVALID_M      =1'b1;
 				RREADY_M       =1'b1;
@@ -166,7 +163,7 @@ module master_read #(
 			end
 			default:
 			begin
-				ARID_M         =default_slaveid;
+				ARID_M         =4'b0010;
 				ARADDR_M       =32'd0;
 				ARVALID_M      =1'b0;
 				RREADY_M       =1'b0;

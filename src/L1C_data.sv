@@ -6,11 +6,11 @@
 //================================================
 `include "../include/def.svh"
 
-`include "valid_register_rtl.sv"
-/*
+`include "valid_register1_rtl.sv"
+
 `include "data_array_wrapper.sv"
 `include "tag_array_wrapper.sv"
-*/
+
 `timescale 1ns/10ps
 module L1C_data(
   input                               clk,
@@ -716,7 +716,7 @@ always_comb
 		
 		
   end
-valid_register val_rigt(
+valid_register1 val_rigt(
 					.clk(clk),
 					.rst(rst),
 					.valid_addr(index),

@@ -1,9 +1,6 @@
 `timescale 1ns/10ps
 `include "../include/AXI_define.svh"
-module master_write#(
-	parameter slaveid        =4'b0001,
-	parameter masterid       =4'b0001,
-	parameter default_slaveid =4'b0010)(
+module master_write(
 	clk,
 	rst,
 	cpu_write_signal,
@@ -194,7 +191,7 @@ module master_write#(
 					WSTRB_M=4'b1111;
 				end
 				//WDATA_M=cpu_write_data;
-				AWID_M              =default_slaveid;
+				AWID_M              =4'b0010;
 				AWADDR_M            =32'd0;
 				AWVALID_M           =1'b0;
 				WLAST_M             =1'b0;
@@ -212,7 +209,7 @@ module master_write#(
 					ns=STATE_SEND_ADDRESS;
 
 				end
-				AWID_M         =slaveid;
+				AWID_M         =4'b0001;
 				AWADDR_M       =address;
 				AWVALID_M      =1'b1;
 				//AWVALID_M=1'b1;
@@ -256,8 +253,8 @@ module master_write#(
 			end				
 			STATE_GET_RESPONSE:
 			begin
-				//if(BVALID_M==1'b1 && BRESP_M==2'b00 && BID_M==slaveid)
-				//if(BVALID_M_register_out==1'b1 && BRESP_M_register_out==2'b00 && BID_M_register_out==masterid)
+				//if(BVALID_M==1'b1 && BRESP_M==2'b00 && BID_M==4'b0001)
+				//if(BVALID_M_register_out==1'b1 && BRESP_M_register_out==2'b00 && BID_M_register_out==4'b0001)
 				if(BVALID_M==1'b1)
 				begin
 					ns=STATE_IDLE;

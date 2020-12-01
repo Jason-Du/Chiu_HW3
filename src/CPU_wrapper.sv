@@ -259,7 +259,7 @@ module CPU_wrapper(
 				.I_in(im_I_write_data),//TO WRAPPER
 				.I_type(im_I_type)//TO WRAPPER
 );
-	master_read #(4'b0000,4'b0000,4'b0010)imread(
+	master_read imread(
 	.clk(clk),
 	.rst(rst),
 	.cpu_read_signal(im_mem_read_signal),
@@ -352,7 +352,7 @@ L1C_data L1CD(
 			.D_type(dm_D_type),//TO WRAPPER
 			.D_out(dm_D_read_data)//FROM WRAPPER
 );
-master_write #(4'b0001,4'b0001,4'b0010)dmwrite (
+master_write dmwrite (
 	.clk(clk),
 	.rst(rst),
 	.cpu_write_signal(dm_mem_write_signal),
@@ -387,7 +387,7 @@ master_write #(4'b0001,4'b0001,4'b0010)dmwrite (
 
 );
 			
-	master_read #(4'b0001,4'b0001,4'b0010)dmread(
+	master_read dmread(
 		.clk(clk),
 		.rst(rst),
 		.cpu_read_signal(dm_mem_read_signal),
